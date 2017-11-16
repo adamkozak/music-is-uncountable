@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  background: #fcfcfa;
+}
+
+
+
+.fill {
+  fill: #fff;
+}
+
+.graticule {
+  fill: none;
+  stroke: #00707070;
+  stroke-width: .5px;
+  stroke-opacity: .5;
+}
+
+.land {
+  fill: #222;
+}
+
+.boundary {
+  fill: none;
+  stroke: #fcfcfa;
+  stroke-width: .5px;
+}
+
+
+div.tooltip { 
+    position: absolute;     
+    text-align: center;         
+    max-width: 120px;
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+    color: white;
+    font: 16px sans-serif;    
+    background: #0c0c0a; 
+    border: 0px;    
+    border-radius: 8px;     
+    pointer-events: none;     
+}
+
+</style>
+<body>
+
+  <p id="report"></p>
+  <p class="tooltip" id="tooltip"><p>
+  <div id="map"></div>
+
+<script src="http://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="https://d3js.org/d3-color.v1.min.js"></script>
+<script>
+
+
+let width = 1200,
+    height = 600;
+
+let projection = d3.geoMercator()
+    .scale(170)
+    .translate([width / 2 - 60, height / 2 + 80])
+    .precision(.1);
+
+let path = d3.geoPath()
+    .projection(projection);
+
+let graticule = d3.geoGraticule();
+
+let svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
+
+svg.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");
+
+svg.append("path")
+    .datum(graticule)
+    .attr("class", "graticule")
+    .attr("d", path);
+
+
+let tooltip = d3.select("#tooltip")
+  .append("div")
+  .style("position", "absolute")
+  .style("z-index", "10")
+  .style("visibility", "hidden")
+  .text("a simple tooltip");
+
+let div = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
+
+d3.json("world-50m.json", function(error, world) {
+//d3.json("https://unpkg.com/world-atlas@1/world/110m.json", function(error, world) {
+
+  if (error) throw error;
+
+  let countries = topojson.feature(world, world.objects.countries).features, neighbors = topojson.neighbors(world.objects.countries.geometries);
+  d3.json("id_dict.json", function(error, dict) {
+    countries.forEach(function(d, i) {
+      if(dict["" + parseInt(d.id)]) {
+        d.name = dict[d.id][1]
+        d.alpha2 = dict[d.id][0]
+      }
+    })
+
+    d3.json("Datasets/countries.json", function(error, spotify_countries) {
+        let spotify_dict = {}
+        spotify_countries.forEach(function(d, i) {
+          spotify_dict[d] = d
+        })
+
+        console.log(spotify_dict)
+
+        svg.selectAll(".country")
+          .data(countries)
+          .enter().insert("path", ".graticule")
+          .attr("class", "country")
+          .attr("d", path)
+          //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
+          .style("fill", function(d, i) { 
+            if(d.alpha2 in spotify_dict) {
+              //return d3.color("#6AE368")
+              return d3.color("#81b71a")
+            }
+            else {
+              return d3.color("#424242")
+            }
+          })
+          /*.on("mouseover", function(d, i) {reporter(d)})*/
+          /*.on("mouseover", function(d, i){tooltip.text(d.name); return tooltip.style("visibility", "visible");})
+          .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+          .on("mouseout", function(){return tooltip.style("visibility", "hidden");})*/
+          .on("mouseover", function(d) {    
+              div.transition()    
+                  .duration(200)    
+                  .style("opacity", 1);    
+              })          
+          .on("mousemove", function(d) {
+              if(d.name) {
+                div .html(d.name + "<br>ALPHA2: " + d.alpha2)  
+                    .style("left", (d3.event.pageX) + "px")   
+                    .style("top", (d3.event.pageY - 28) + "px");  
+              }
+              else {
+                div .html(d.id)  
+                    .style("left", (d3.event.pageX) + "px")   
+                    .style("top", (d3.event.pageY - 28) + "px");  
+              }
+          })
+          .on("mouseout", function(d) {   
+              div.transition()    
+                  .duration(500)    
+                  .style("opacity", 0); 
+          });
+
+          svg.insert("path", ".graticule")
+            .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+            .attr("class", "boundary")
+            .attr("d", path);
+
+    });
+
+  });
+  
+
+});
+
+  function reporter(x) {
+      console.log(x.name)
+      d3.select("#report").text(function() {
+          if(x.name) {
+            return (x.name);
+          }
+          return (x.id);
+      });
+  }
+
+
+d3.select(self.frameElement).style("height", height + "px");
+
+</script>
