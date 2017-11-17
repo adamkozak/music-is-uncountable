@@ -20,10 +20,11 @@
   const db = client.service('mongodb', 'mongodb-atlas').db('music');
 
 
-  db.collection('test').find({name:"Chantaje", date: {"$gte": new Date("2017-01-01T00:00:00.000Z") , "$lt": new Date("2017-12-03T00:00:00.001Z") }}).then(entries => {
+  client.login().then(() => 
+    db.collection('test').find({name:"Chantaje", date: {"$gte": new Date("2017-01-01T00:00:00.000Z") , "$lt": new Date("2017-12-03T00:00:00.001Z") }}).then(entries => {
     console.log(entries)
     var html = entries.map(c => '<div>' + c.date + " - " + c.region + ": " + c.streams + '</div>').join('');
     document.getElementById('entries').innerHTML = html;
-  });
+  }));
 
 </script>
