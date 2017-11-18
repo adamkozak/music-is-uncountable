@@ -50,7 +50,7 @@ div.tooltip {
 </style>
 <body>
   <input id="myinput" hidden="true"/>
-  <button id="go_button" hidden="true"></button>
+  <button id="go_button" hidden="true">Show infos</button>
 
   <p id="report"></p>
   <p class="tooltip" id="tooltip"><p>
@@ -174,12 +174,12 @@ client.login().then(() =>
     button.onclick = function() {
 
       
-    if(selectedSongID) {
+      if(selectedSongID) {
       //TODO: GATHER THE DATA FOR THE SELECTED SONG ID
       /*
         db.collection('test').find({}
-      }
       */
+      }
     }
 
   }));
