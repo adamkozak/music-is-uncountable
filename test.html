@@ -129,8 +129,10 @@ let div = d3.select("body").append("div")
 const client = new stitch.StitchClient('dataviz-xeqhx');
 const db = client.service('mongodb', 'mongodb-atlas').db('music');
 
-
+let midDate = new Date("2017-07-01T00:00:00.000Z");
 let selectedSongID;
+
+
 /*
 client.login().then(() => 
   db.collection('infos').find({name:"songs_list"}).then(songs_list => {
@@ -149,6 +151,78 @@ let countries;
 let spotify_countries;
 let streamsDict = {};
 
+
+let getAllDocuments = function(collection, query, callback, documents, projection) {
+    //console.log(query)
+    //console.log(projection)
+    collection.find(query,{project: projection, limit:10000}).then(items => {
+      documents = documents.concat(items);
+      
+      if(items.length >= 10000) {
+        let last_id = documents[documents.length - 1]["_id"];
+        console.log(last_id);
+        query["_id"] = {"$gt":last_id}
+        getAllDocuments(collection, query, callback, documents, projection);
+      }
+      else {
+        callback(documents);
+      }
+    })
+  }
+
+
+client.login().then(() => client.executeNamedPipeline('songsList').then(list => {
+
+  // Map songs to label and value to be displayed in the autocomplete input
+  songsList = list.result[0].list.map(function(x) {
+    return {
+      label: x.n + " - " + x.a, 
+      value: { text: x.n, id: x["id"] }
+    }
+  });
+
+  //console.log(songsList)
+
+
+  // Set the autocomplete input
+  let input = document.getElementById("myinput");
+  new Awesomplete(input, {
+    list: songsList, 
+    replace: function(item) {
+      //console.log(item.value.id);
+      selectedSongID = item.value.id;
+      this.input.value = item.value.text;
+    }
+  });
+
+  // Display the autocomplete input
+  input.hidden = false;
+
+  let button = document.getElementById("go_button");
+  button.hidden = false;
+  button.onclick = function() {    
+    if(selectedSongID && spotify_countries) {
+
+
+      let callback = function(timeLine) {
+        console.log(timeLine.length)
+        spotify_countries.forEach(function(d, i) {
+          let filtered = timeLine.filter(x => d == x.r);
+          let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
+              return a + v;
+          }, 0)
+          //console.log(d)
+          streamsDict[d] = aggregation;
+          //console.log(streamsDict);
+        })
+      }
+
+      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, callback, [], {_id: 1, s: 1, r:1})
+    }
+  }
+}));
+
+/*
 client.login().then(() => 
   db.collection('songs').find({},{project: {_id: 0, "id":1, "Artist":1, "Track Name": 1}}).then(list => {
     console.log(list)
@@ -178,27 +252,31 @@ client.login().then(() =>
 
       
       if(selectedSongID && spotify_countries) {
-        db.collection('entries').find({"id":selectedSongID}).then(timeLine => {
-          console.log(timeLine);
 
-          spotify_countries.forEach(function(d, i) {
-            let filtered = timeLine.filter(x => d == x.r);
-            let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
-                return a + v;
-            }, 0)
-            console.log(d)
-            streamsDict[d] = aggregation;
+        db.collection('entries').find({"id":selectedSongID, "d":{ $lt: midDate }},{project:{_id: 0, s: 1, r:1}, limit:20000}).then(firstTimeLine => {
+          db.collection('entries').find({"id":selectedSongID, "d":{ $gte: midDate }},{project:{_id: 0, s: 1, r:1}, limit:20000}).then(secondTimeLine => {
+            timeLine = firstTimeLine.concat(secondTimeLine);
+            console.log(timeLine);
+
+            spotify_countries.forEach(function(d, i) {
+              let filtered = timeLine.filter(x => d == x.r);
+              let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
+                  return a + v;
+              }, 0)
+              console.log(d)
+              streamsDict[d] = aggregation;
+            })
+            
+            console.log(streamsDict);
           })
-          
-          console.log(streamsDict);
-          
-        });
+        
+        });  
       }
     }
 
   }));
 
-
+*/
 d3.json("world-50m.json", function(error, world) {
 //d3.json("https://unpkg.com/world-atlas@1/world/110m.json", function(error, world) {
 
