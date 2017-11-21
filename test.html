@@ -31,6 +31,13 @@ body {
 }
 
 
+.selectedBoundary {
+  fill: none;
+  stroke: #ff4242;
+  stroke-width: 1.5px;
+}
+
+
 div.tooltip { 
     position: absolute;     
     text-align: center;         
@@ -49,7 +56,7 @@ div.tooltip {
 
 </style>
 <body>
-  <input id="myinput" hidden="true"/>
+  <input id="song_input" hidden="true"/>
   <button id="go_button" hidden="true">Show infos</button>
 
   <p id="report"></p>
@@ -133,20 +140,6 @@ let midDate = new Date("2017-07-01T00:00:00.000Z");
 let selectedSongID;
 
 
-/*
-client.login().then(() => 
-  db.collection('infos').find({name:"songs_list"}).then(songs_list => {
-    //console.log(songs_list[0])
-    let input = document.getElementById("myinput");
-    new Awesomplete(input, {
-      list: songs_list[0].value
-    });
-  })); */
-
-/*
-Obtain list of all songs in the database, retrieve only songs id, Artist and Track Name.
-Populate the Awesome Complet input using track names and Artist
-*/
 let countries;
 let spotify_countries;
 let streamsDict = {};
@@ -171,21 +164,18 @@ let getAllDocuments = function(collection, query, callback, documents, projectio
   }
 
 
-client.login().then(() => client.executeNamedPipeline('songsList').then(list => {
-
+let songListCallback = function(list) {
   // Map songs to label and value to be displayed in the autocomplete input
-  songsList = list.result[0].list.map(function(x) {
+  songsList = list.map(function(x) {
     return {
-      label: x.n + " - " + x.a, 
-      value: { text: x.n, id: x["id"] }
+      label: x["Track Name"] + " - " + x["Artist"], 
+      value: { text: x["Track Name"], id: x["id"] }
     }
   });
 
-  //console.log(songsList)
-
 
   // Set the autocomplete input
-  let input = document.getElementById("myinput");
+  let input = document.getElementById("song_input");
   new Awesomplete(input, {
     list: songsList, 
     replace: function(item) {
@@ -204,7 +194,7 @@ client.login().then(() => client.executeNamedPipeline('songsList').then(list => 
     if(selectedSongID && spotify_countries) {
 
 
-      let callback = function(timeLine) {
+      let songEntriesCallback = function(timeLine) {
         console.log(timeLine.length)
         spotify_countries.forEach(function(d, i) {
           let filtered = timeLine.filter(x => d == x.r);
@@ -217,72 +207,75 @@ client.login().then(() => client.executeNamedPipeline('songsList').then(list => 
         })
       }
 
-      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, callback, [], {_id: 1, s: 1, r:1})
+      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 1, s: 1, r:1})
     }
   }
-}));
+}
+
+client.login().then(() => getAllDocuments(db.collection('songs'), {}, songListCallback, [], {_id: 0, id: 1, "Track Name": 1, "Artist": 1}))
 
 /*
-client.login().then(() => 
-  db.collection('songs').find({},{project: {_id: 0, "id":1, "Artist":1, "Track Name": 1}}).then(list => {
-    console.log(list)
-    let input = document.getElementById("myinput");
-    input.hidden = false;
-    new Awesomplete(input, {
-      list: list.map(function(x) {
-        return {
-                  label: x["Track Name"] + " - " + x["Artist"], 
-                  value: { text: x["Track Name"], id: x["id"] }
-                }
-      }), 
+client.login().then(() => client.executeNamedPipeline('songsList').then(list => {
 
-      replace: function(item) {
-        console.log(item.value.id);
-        selectedSongID = item.value.id;
-        this.input.value = item.value.text;
-      }
+  // Map songs to label and value to be displayed in the autocomplete input
+  songsList = list.result[0].list.map(function(x) {
+    return {
+      label: x.n + " - " + x.a, 
+      value: { text: x.n, id: x["id"] }
     }
+  });
 
- //
-  );
+  //console.log(songsList)
 
-    let button = document.getElementById("go_button");
-    button.hidden = false;
-    button.onclick = function() {
 
-      
-      if(selectedSongID && spotify_countries) {
-
-        db.collection('entries').find({"id":selectedSongID, "d":{ $lt: midDate }},{project:{_id: 0, s: 1, r:1}, limit:20000}).then(firstTimeLine => {
-          db.collection('entries').find({"id":selectedSongID, "d":{ $gte: midDate }},{project:{_id: 0, s: 1, r:1}, limit:20000}).then(secondTimeLine => {
-            timeLine = firstTimeLine.concat(secondTimeLine);
-            console.log(timeLine);
-
-            spotify_countries.forEach(function(d, i) {
-              let filtered = timeLine.filter(x => d == x.r);
-              let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
-                  return a + v;
-              }, 0)
-              console.log(d)
-              streamsDict[d] = aggregation;
-            })
-            
-            console.log(streamsDict);
-          })
-        
-        });  
-      }
+  // Set the autocomplete input
+  let input = document.getElementById("song_input");
+  new Awesomplete(input, {
+    list: songsList, 
+    replace: function(item) {
+      //console.log(item.value.id);
+      selectedSongID = item.value.id;
+      this.input.value = item.value.text;
     }
+  });
 
-  }));
+  // Display the autocomplete input
+  input.hidden = false;
 
+  let button = document.getElementById("go_button");
+  button.hidden = false;
+  button.onclick = function() {    
+    if(selectedSongID && spotify_countries) {
+
+
+      let songEntriesCallback = function(timeLine) {
+        console.log(timeLine.length)
+        spotify_countries.forEach(function(d, i) {
+          let filtered = timeLine.filter(x => d == x.r);
+          let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
+              return a + v;
+          }, 0)
+          //console.log(d)
+          streamsDict[d] = aggregation;
+          //console.log(streamsDict);
+        })
+      }
+
+      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 1, s: 1, r:1})
+    }
+  }
+})); 
 */
+
+
 d3.json("world-50m.json", function(error, world) {
 //d3.json("https://unpkg.com/world-atlas@1/world/110m.json", function(error, world) {
 
   if (error) throw error;
 
   countries = topojson.feature(world, world.objects.countries).features, neighbors = topojson.neighbors(world.objects.countries.geometries);
+  console.log(countries);
+  
   d3.json("id_dict.json", function(error, dict) {
     countries.forEach(function(d, i) {
       if(dict["" + parseInt(d.id)]) {
@@ -347,8 +340,17 @@ d3.json("world-50m.json", function(error, world) {
               div.transition()    
                   .duration(500)    
                   .style("opacity", 0); 
+          })
+          .on("click", function(d) {
+
+            svg.insert("path", ".graticule")
+              .datum(topojson.mesh(world, world.objects.countries, function(a, b) { 
+                return (a.id == d.id || b.id == d.id)}))
+              .attr("class", "selectedBoundary")
+              .attr("d", path);
           });
 
+          // Draw the boundaries
           svg.insert("path", ".graticule")
             .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
             .attr("class", "boundary")
