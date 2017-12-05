@@ -1,60 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
 
-body {
-  background: #424242;
-  background: #fcfcfa;
-}
-
-
-
-.fill {
-  fill: #fff;
-}
-
-.graticule {
-  fill: none;
-  stroke: #00707070;
-  stroke-width: .5px;
-  stroke-opacity: .5;
-}
-
-.land {
-  fill: #222;
-}
-
-.boundary {
-  fill: none;
-  stroke: #fcfcfa;
-  stroke-width: .5px;
-}
-
-
-.selectedBoundary {
-  fill: none;
-  stroke: #ff4242;
-  stroke-width: 1.5px;
-}
-
-
-div.tooltip { 
-    position: absolute;     
-    text-align: center;         
-    max-width: 120px;
-    padding-top: 4px;
-    padding-right: 8px;
-    padding-bottom: 4px;
-    padding-left: 8px;
-    color: white;
-    font: 16px sans-serif;    
-    background: #0c0c0a; 
-    border: 0px;    
-    border-radius: 8px;     
-    pointer-events: none;     
-}
-
-</style>
 <body style="margin: 0; background: #222222">
   <div id="container" style="width:100%; margin: 0px;">                                   
     <div id="left" style="float:left; width:75%; margin: 0px;"> 
@@ -67,6 +13,7 @@ div.tooltip {
   
 </body>
 
+<link rel="stylesheet" type="text/css" href="music.css">
 <link rel="stylesheet" href="complete/awesomplete.css" />
 <script src="complete/awesomplete.js" async></script>
 
@@ -74,17 +21,15 @@ div.tooltip {
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
 <script src="https://d3js.org/topojson.v1.min.js"></script>
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
+<script src="utils.js"></script>
 <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
 <link rel="stylesheet" href="streamgraph.css"></script>
 <script src="streamgraph.js"></script>
 <!--<script src="stitch.js"></script>-->
 
-
-
 <script>
 
 let leftDiv = document.getElementById("left");
-
 
 let width = leftDiv.clientWidth;
 let height = window.innerHeight - 10;
@@ -124,57 +69,62 @@ let navigation = svg.append("image")
     .attr("width", 60)
     .attr("height", 60)
 
-
 navigation
   .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ")");
 
-navigation.on("click", function(){
+navigation.on("click", function() {
+
     if(navigationMap) {
 
       navigation.transition()
         .attr("transform", "translate(" + ((width/2)+(navigation.node().getBoundingClientRect().width / 2)) + "," +  navigation.node().getBoundingClientRect().height + ") rotate(180)")
         .duration(1000) 
-        .delay(100)     
+        .delay(200)     
 
       map.transition()
         .attr("transform", "translate(0, " + (-height) + ")")
         .duration(1000) 
-        .delay(100)    
-
-      if(histogram) {      
-        histogram.transition()
-          .attr("transform", "translate(" + (width-histogram.node().getBoundingClientRect().width) + "," + histogram.node().getBoundingClientRect().height + ")")
-          .duration(1000) 
-          .delay(0)     
-      }
+        .delay(200)    
 
       navigationMap = false
-
-
     } 
     else {
       navigation.transition()        
         .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ") rotate(0)")
-        .duration(1000) 
+        .duration(1200) 
         .delay(0)   
 
       map.transition()
         .attr("transform", "translate(0, " + 0 + ")")
-        .duration(1000) 
+        .duration(1200) 
         .delay(0)     
-
-      if(histogram) {      
-        histogram.transition()
-          .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
-          .duration(1000) 
-          .delay(100)     
-      }
 
       navigationMap = true
     }
+
+
+    histogramTransition();
   })
 
+function histogramTransition() {
 
+  if(histogram) {   
+    if(navigationMap) {
+      histogram.transition()
+        .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+        .duration(1000) 
+        .delay(200)   
+    }
+    else {   
+      if(histogram) {      
+        histogram.transition()
+          .attr("transform", "translate(" + (width-histogram.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
+          .duration(1200) 
+          .delay(0)     
+      }  
+    }
+  }
+}
 /*
 map.append("use")
     .attr("class", "fill")
@@ -190,15 +140,6 @@ map.append("path")
     .datum(graticule)
     .attr("class", "graticule")
     .attr("d", path);
-
-
-
-let tooltip = d3.select("#tooltip")
-  .append("div")
-  .style("position", "absolute")
-  .style("z-index", "10")
-  .style("visibility", "hidden")
-  .text("a simple tooltip");
 
 let div = d3.select("body").append("div") 
     .attr("class", "tooltip")       
@@ -241,11 +182,9 @@ const lowestDate = new Date("2017-01-01T12:00:00.000Z");
 let midDate = new Date("2017-07-01T00:00:00.000Z");
 let selectedSongID;
 
-
 let countries;
 let spotify_countries;
 let streamsDict = {};
-
 
 let getAllDocuments = function(collection, query, callback, documents, projection) {
     //console.log(query)
@@ -324,9 +263,7 @@ let songListCallback = function(list) {
           }
         });
 
-
         //console.log(data.map(d => d.date))
-
         
         regionsArray = ["Europe","North America","South America", "Central America", "Asia","Oceania"]
         datesArray = [];
@@ -358,14 +295,18 @@ let songListCallback = function(list) {
           d.date = format(d.date);
         });
 
-/*
         if(histogram) {
-          histogram.remove();
-        }*/
-        histogram = chart(fullData, "palette", svg, histogram);
+          histogram = chart(fullData, "palette", svg, histogram);
+        }
+        else {
+          histogram = chart(fullData, "palette", svg, histogram);
 
-        histogram
-          .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+          histogram
+          .attr("transform", "translate(" + (-histogram.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+
+          histogramTransition();
+        }
+
         console.log(histogram)
 
       }
@@ -377,62 +318,7 @@ let songListCallback = function(list) {
 
 client.login().then(() => getAllDocuments(db.collection('songs'), {}, songListCallback, [], {_id: 0, id: 1, "Track Name": 1, "Artist": 1}))
 
-/*
-client.login().then(() => client.executeNamedPipeline('songsList').then(list => {
-
-  // Map songs to label and value to be displayed in the autocomplete input
-  songsList = list.result[0].list.map(function(x) {
-    return {
-      label: x.n + " - " + x.a, 
-      value: { text: x.n, id: x["id"] }
-    }
-  });
-
-  //console.log(songsList)
-
-
-  // Set the autocomplete input
-  let input = document.getElementById("song_input");
-  new Awesomplete(input, {
-    list: songsList, 
-    replace: function(item) {
-      //console.log(item.value.id);
-      selectedSongID = item.value.id;
-      this.input.value = item.value.text;
-    }
-  });
-
-  // Display the autocomplete input
-  input.hidden = false;
-
-  let button = document.getElementById("go_button");
-  button.hidden = false;
-  button.onclick = function() {    
-    if(selectedSongID && spotify_countries) {
-
-
-      let songEntriesCallback = function(timeLine) {
-        console.log(timeLine.length)
-        spotify_countries.forEach(function(d, i) {
-          let filtered = timeLine.filter(x => d == x.r);
-          let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
-              return a + v;
-          }, 0)
-          //console.log(d)
-          streamsDict[d] = aggregation;
-          //console.log(streamsDict);
-        })
-      }
-
-      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 1, s: 1, r:1})
-    }
-  }
-})); 
-*/
-
-
 d3.json("world-50m.json", function(error, world) {
-//d3.json("https://unpkg.com/world-atlas@1/world/110m.json", function(error, world) {
 
   if (error) throw error;
 
@@ -473,19 +359,17 @@ d3.json("world-50m.json", function(error, world) {
               return d3.color("#828282")
             }
           })
-          /*.on("mouseover", function(d, i) {reporter(d)})*/
-          /*.on("mouseover", function(d, i){tooltip.text(d.name); return tooltip.style("visibility", "visible");})
-          .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-          .on("mouseout", function(){return tooltip.style("visibility", "hidden");})*/
+
           .on("mouseover", function(d) {    
               div.transition()    
                   .duration(200)    
                   .style("opacity", 1);    
-              })          
+              })    
+
           .on("mousemove", function(d) {
               if(d.name) {
                 if(streamsDict[d.alpha2] !== undefined) {
-                  div .html(d.name + "<br>Streams Count: " + streamsDict[d.alpha2])  
+                  div .html(d.name + "<br>Yearly Streams: " + streamsDict[d.alpha2])  
                       .style("left", (d3.event.pageX) + "px")   
                       .style("top", (d3.event.pageY - 28) + "px");  
                 }
