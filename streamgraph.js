@@ -1,4 +1,4 @@
-function chart(data, color) {
+function chart(data, color, svg, histogram) {
 
 
 let datearray = [];
@@ -24,29 +24,20 @@ let margin = {top: 20, right: 40, bottom: 30, left: 60};
 let width = 600//document.body.clientWidth - margin.left - margin.right;
 let height = 200 - margin.top - margin.bottom;
 
+
 let tooltip = d3.select("body")
     .append("div")
     .attr("class", "remove")
+    .style("color", "white")
     .style("position", "absolute")
     .style("z-index", "20")
     .style("visibility", "hidden")
     .style("top", "30px")
     .style("left", "55px");
 
-
-//d3.select(".chart").select("svg").remove();
-
-let svg = d3.select(".chart").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    
-
-  function stackMax(layer) {
+function stackMax(layer) {
     return d3.max(layer, function(d) { return d[1]; });
   }
-
 
   let stack = d3.stack()
     .keys(["Europe","North America","South America", "Central America", "Asia","Oceania"])
@@ -54,8 +45,6 @@ let svg = d3.select(".chart").append("svg")
     .offset(d3.stackOffsetNone);
 
   let layers = stack(data)
-
-
 
   let x = d3.scaleTime()
     .range([0, width])
@@ -85,144 +74,160 @@ let svg = d3.select(".chart").append("svg")
 
   console.log(layers)
 
-  svg.selectAll("test")
-  .data(layers)
-  .enter().append("path")
-    .attr("class", "layer")
-    .attr("d", area)
-    .attr("fill", function(d,i) { return z(i); });
+if(histogram) {
 
-/*
-  svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + (height - 10) + ")")
-    .call(xAxis);
+  histogram.selectAll(".axishandler").remove()
 
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);*/
+  console.log("REUSING")
 
-   var g = svg.append("g")
-   // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  histogram.selectAll("path")
+    .data(layers)
+    .transition()
+      .duration(2500)
+      .attr("d", area);
+}
 
-  g.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + (height-10) + ")")
-    .call(xAxis);
+else {
 
-  g.append("g")
-    .attr("class", "y axis")
-    .call(yAxis);
+  histogram = svg.append("g")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      
+    histogram.selectAll("test")
+    .data(layers)
+    .enter().append("path")
+      .attr("class", "layer")
+      .attr("d", area)
+      .attr("fill", function(d,i) { return z(i); });
 
-  let mouseOnLayer = false;
+  }
 
-  svg.selectAll(".layer")
-    .attr("opacity", 1)
-    .on("mouseover", function(d, i) {
-      svg.selectAll(".layer").transition()
-      .duration(250)
-      .attr("opacity", function(d, j) {
-        return j != i ? 0.6 : 1;
-    })})
-    .on("mousemove", function(d, i) {
-      mouseOnLayer = true;
-      mouse = d3.mouse(this);
-      mousex = mouse[0];
-      let invertedx = x.invert(mousex);
+     var g = histogram.append("g")
+      .attr("class", "axishandler")
+     // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      for (let k = 0; k < data.length; k++) {
-        datearray[k] = data[k].date
-       // datearray[k] = datearray[k].getMonth() + datearray[k].getDate();
-      }
+    g.append("g")
+      .attr("class", "xaxis")
+      .attr("transform", "translate(0," + (height-10) + ")")
+      .call(xAxis);
 
-      let mousedate = 0
-      let diff = Math.abs(invertedx.getTime() - datearray[0].getTime())
-      for(let j = 1; j < datearray.length; j++) {
-        if(Math.abs(invertedx.getTime() - datearray[mousedate].getTime()) > Math.abs(invertedx.getTime() - datearray[j].getTime())) {
-          mousedate = j;
-        }
-      }
+    g.append("g")
+      .attr("class", "yaxis")
+      .call(yAxis);
 
-      pro = d[mousedate][1] - d[mousedate][0];
+    let mouseOnLayer = false;
 
-      d3.select(this)
-      .classed("hover", true)
-      .attr("stroke", strokecolor)
-      .attr("stroke-width", "0.5px"), 
-      tooltip.html( "<p>" + datearray[mousedate] + "<br>" + d.key + "<br>" + pro + "</p>" ).style("visibility", "visible");
-
-    })
-    .on("mouseout", function(d, i) {
-      mouseOnLayer = false;
-     svg.selectAll(".layer")
-      .transition()
-      .duration(250)
-      .attr("opacity", "1");
-      d3.select(this)
-      .classed("hover", false)
-      .attr("stroke-width", "0px"), tooltip.html( "<p>" + d.key + "<br>" + pro + "</p>" ).style("visibility", "hidden");
-  })
-    
-  /*let vertical = d3.select(".chart")
-        .append("div")
-        .attr("class", "remove")
-        //.attr("transform", "translate(" + 0 + "," + -50 + ")")
-        .style("position", "absolute")
-        .style("z-index", "19")
-        .style("width", "1px")
-        .style("height", "200px")
-        .style("top", "100px")
-        .style("left", "0px")
-        .style("background", "#fff");*/
-
-   let displayWorldStream = function(mousex, event) {
-
+    histogram.selectAll(".layer")
+      .attr("opacity", 1)
+      .on("mouseover", function(d, i) {
+        histogram.selectAll(".layer").transition()
+        .duration(250)
+        .attr("opacity", function(d, j) {
+          return j != i ? 0.6 : 1;
+      })})
+      .on("mousemove", function(d, i) {
+        mouseOnLayer = true;
+        mouse = d3.mouse(this);
+        mousex = mouse[0];
         let invertedx = x.invert(mousex);
-        let selected = (layers[0].values);
+
         for (let k = 0; k < data.length; k++) {
           datearray[k] = data[k].date
+         // datearray[k] = datearray[k].getMonth() + datearray[k].getDate();
         }
 
         let mousedate = 0
         let diff = Math.abs(invertedx.getTime() - datearray[0].getTime())
-        for(let i = 1; i < data.length; i++) {
-          if(Math.abs(invertedx.getTime() - datearray[mousedate].getTime()) > Math.abs(invertedx.getTime() - datearray[i].getTime())) {
-            mousedate = i;
+        for(let j = 1; j < datearray.length; j++) {
+          if(Math.abs(invertedx.getTime() - datearray[mousedate].getTime()) > Math.abs(invertedx.getTime() - datearray[j].getTime())) {
+            mousedate = j;
           }
         }
 
-        streamsSum = layers.map(x => x[mousedate][1] - x[mousedate][0]).reduce((a, v) => a + v, 0)
+        pro = d[mousedate][1] - d[mousedate][0];
 
-        d3.select(event)
-              .classed("hover", true)
-              .attr("stroke", strokecolor)
-              .attr("stroke-width", "0.5px"), 
-              tooltip.html( "<p>" + datearray[mousedate] + "<br>" + "World" + "<br>" + streamsSum + "</p>" ).style("visibility", "visible");
-              
-  }      
+        d3.select(this)
+        .classed("hover", true)
+        .attr("stroke", strokecolor)
+        .attr("stroke-width", "0.5px"), 
+        tooltip.html( "<p>" + datearray[mousedate] + "<br>" + d.key + "<br>" + pro + "</p>" ).style("visibility", "visible");
 
-  d3.select(".chart")
-      .on("mousemove", function(){  
-        mousex = d3.mouse(this);
-        mousex = mousex[0] + 5;
-        //vertical.style("left", mousex + "px" )
-
-        if(!mouseOnLayer) {
-          mousex -= (5 + margin.left)
-          displayWorldStream(mousex, this)
-        }
       })
+      .on("mouseout", function(d, i) {
+        mouseOnLayer = false;
+       histogram.selectAll(".layer")
+        .transition()
+        .duration(250)
+        .attr("opacity", "1");
+        d3.select(this)
+        .classed("hover", false)
+        .attr("stroke-width", "0px"), tooltip.html( "<p>" + d.key + "<br>" + pro + "</p>" ).style("visibility", "hidden");
+    })
+      
+    /*let vertical = d3.select(".chart")
+          .append("div")
+          .attr("class", "remove")
+          //.attr("transform", "translate(" + 0 + "," + -50 + ")")
+          .style("position", "absolute")
+          .style("z-index", "19")
+          .style("width", "1px")
+          .style("height", "200px")
+          .style("top", "100px")
+          .style("left", "0px")
+          .style("background", "#fff");*/
 
-        //displayWorldStream(mousex)
-      .on("mouseover", function(){  
-        mousex = d3.mouse(this);
-        mousex = mousex[0] + 5;
-        //vertical.style("left", mousex + "px")
+     let displayWorldStream = function(mousex, event) {
 
-        if(!mouseOnLayer) {
-          mousex -= (5 + margin.left)
+          let invertedx = x.invert(mousex);
+          let selected = (layers[0].values);
+          for (let k = 0; k < data.length; k++) {
+            datearray[k] = data[k].date
+          }
 
-          displayWorldStream(mousex, this)
-        }
-       });
+          let mousedate = 0
+          let diff = Math.abs(invertedx.getTime() - datearray[0].getTime())
+          for(let i = 1; i < data.length; i++) {
+            if(Math.abs(invertedx.getTime() - datearray[mousedate].getTime()) > Math.abs(invertedx.getTime() - datearray[i].getTime())) {
+              mousedate = i;
+            }
+          }
+
+          streamsSum = layers.map(x => x[mousedate][1] - x[mousedate][0]).reduce((a, v) => a + v, 0)
+
+          d3.select(event)
+                .classed("hover", true)
+                .attr("stroke", strokecolor)
+                .attr("stroke-width", "0.5px"), 
+                tooltip.html( "<p>" + datearray[mousedate] + "<br>" + "World" + "<br>" + streamsSum + "</p>" ).style("visibility", "visible");
+                
+    }      
+
+    d3.select(".chart")
+        .on("mousemove", function(){  
+          mousex = d3.mouse(this);
+          mousex = mousex[0] + 5;
+          //vertical.style("left", mousex + "px" )
+
+          if(!mouseOnLayer) {
+            mousex -= (5 + margin.left)
+            displayWorldStream(mousex, this)
+          }
+        })
+
+          //displayWorldStream(mousex)
+        .on("mouseover", function(){  
+          mousex = d3.mouse(this);
+          mousex = mousex[0] + 5;
+          //vertical.style("left", mousex + "px")
+
+          if(!mouseOnLayer) {
+            mousex -= (5 + margin.left)
+
+            displayWorldStream(mousex, this)
+          }
+         });
+
+  return histogram;
 }

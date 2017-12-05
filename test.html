@@ -55,18 +55,16 @@ div.tooltip {
 }
 
 </style>
-<body>
-  <input id="song_input" hidden="true"/>
-  <button id="go_button" hidden="true">Show infos</button>
-
-  <p id="report"></p>
-  <p class="tooltip" id="tooltip"><p>
-  <br>
-  <br>
-  <br>
-  <div id="map"></div>
-
-  <div class="chart"></div>
+<body style="margin: 0; background: #222222">
+  <div id="container" style="width:100%; margin: 0px;">                                   
+    <div id="left" style="float:left; width:75%; margin: 0px;"> 
+    </div>                     
+    <div id="right" style="float:right; width:25%; margin: 0px;"> 
+      <input id="song_input" hidden="true"/>
+      <button id="go_button" hidden="true">Show infos</button>
+    </div>                   
+  </div>   
+  
 </body>
 
 <link rel="stylesheet" href="complete/awesomplete.css" />
@@ -77,6 +75,7 @@ div.tooltip {
 <script src="https://d3js.org/topojson.v1.min.js"></script>
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
 <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
+<link rel="stylesheet" href="streamgraph.css"></script>
 <script src="streamgraph.js"></script>
 <!--<script src="stitch.js"></script>-->
 
@@ -84,14 +83,19 @@ div.tooltip {
 
 <script>
 
+let leftDiv = document.getElementById("left");
 
 
+let width = leftDiv.clientWidth;
+let height = window.innerHeight - 10;
+
+/*
 let width = 1200,
-    height = 600;
+    height = 600;*/
 
 let projection = d3.geoMercator()
     .scale(150)
-    .translate([width / 2 - 60, height / 2 + 80])
+    .translate([width / 2 - 80, height / 2 + 0])
     .precision(.1);
 
 let path = d3.geoPath()
@@ -99,28 +103,90 @@ let path = d3.geoPath()
 
 let graticule = d3.geoGraticule();
 
-let svg = d3.select("body").append("svg")
+let svg = d3.select("#left").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("transform", "translate(" + 0 + "," + 0 + ")");
+
+let map = svg.append("g")
     .attr("width", width)
     .attr("height", height);
 
-
-svg.append("defs").append("path")
+map.append("defs").append("path")
     .datum({type: "Sphere"})
     .attr("id", "sphere")
     .attr("d", path);
 
+let navigationMap = true;
 
-svg.append("use")
+let navigation = svg.append("image")
+    .attr("xlink:href","img/arrow_circle.svg")
+    .attr("width", 60)
+    .attr("height", 60)
+
+
+navigation
+  .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ")");
+
+navigation.on("click", function(){
+    if(navigationMap) {
+
+      navigation.transition()
+        .attr("transform", "translate(" + ((width/2)+(navigation.node().getBoundingClientRect().width / 2)) + "," +  navigation.node().getBoundingClientRect().height + ") rotate(180)")
+        .duration(1000) 
+        .delay(100)     
+
+      map.transition()
+        .attr("transform", "translate(0, " + (-height) + ")")
+        .duration(1000) 
+        .delay(100)    
+
+      if(histogram) {      
+        histogram.transition()
+          .attr("transform", "translate(" + (width-histogram.node().getBoundingClientRect().width) + "," + histogram.node().getBoundingClientRect().height + ")")
+          .duration(1000) 
+          .delay(0)     
+      }
+
+      navigationMap = false
+
+
+    } 
+    else {
+      navigation.transition()        
+        .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ") rotate(0)")
+        .duration(1000) 
+        .delay(0)   
+
+      map.transition()
+        .attr("transform", "translate(0, " + 0 + ")")
+        .duration(1000) 
+        .delay(0)     
+
+      if(histogram) {      
+        histogram.transition()
+          .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+          .duration(1000) 
+          .delay(100)     
+      }
+
+      navigationMap = true
+    }
+  })
+
+
+/*
+map.append("use")
     .attr("class", "fill")
-    .attr("xlink:href", "#sphere");
-
-svg.append("rect")
+    .attr("xlink:href", "#sphere");*/
+/*
+map.append("rect")
     .attr("width", "100%")
     .attr("height", "100%")
-    .attr("fill", d3.color("#424242"));
+    .attr("fill", d3.color("#00FFFFFF"));*/
 
 
-svg.append("path")
+map.append("path")
     .datum(graticule)
     .attr("class", "graticule")
     .attr("d", path);
@@ -137,6 +203,8 @@ let tooltip = d3.select("#tooltip")
 let div = d3.select("body").append("div") 
     .attr("class", "tooltip")       
     .style("opacity", 0);
+
+let histogram;
 
 
 const client = new stitch.StitchClient('dataviz-xeqhx');
@@ -227,8 +295,6 @@ let songListCallback = function(list) {
   button.onclick = function() {    
     if(selectedSongID && spotify_countries) {
 
-
-
       let songEntriesCallback = function(timeLine) {
 
         timeLine = timeLine.filter(x => x.r != 'global')
@@ -292,7 +358,15 @@ let songListCallback = function(list) {
           d.date = format(d.date);
         });
 
-        chart(fullData, "palette");
+/*
+        if(histogram) {
+          histogram.remove();
+        }*/
+        histogram = chart(fullData, "palette", svg, histogram);
+
+        histogram
+          .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+        console.log(histogram)
 
       }
 
@@ -382,7 +456,9 @@ d3.json("world-50m.json", function(error, world) {
 
         //console.log(spotify_dict)
 
-        svg.selectAll(".country")
+        countries = countries.filter(d => d.alpha2 != "aq")
+
+        map.selectAll(".country")
           .data(countries)
           .enter().insert("path", ".graticule")
           .attr("class", "country")
@@ -430,6 +506,7 @@ d3.json("world-50m.json", function(error, world) {
                   .duration(500)    
                   .style("opacity", 0); 
           })
+          /*
           .on("click", function(d) {
 
             svg.insert("path", ".graticule")
@@ -437,10 +514,10 @@ d3.json("world-50m.json", function(error, world) {
                 return (a.id == d.id || b.id == d.id)}))
               .attr("class", "selectedBoundary")
               .attr("d", path);
-          });
+          });*/
 
           // Draw the boundaries
-          svg.insert("path", ".graticule")
+          map.insert("path", ".graticule")
             .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
             .attr("class", "boundary")
             .attr("d", path);

@@ -1,0 +1,23 @@
+.xaxis line{
+  stroke: white;
+}
+
+.xaxis path{
+  stroke: white;
+}
+
+.xaxis text{
+  fill: white;
+} 
+
+.yaxis line{
+  stroke: white;
+}
+
+.yaxis path{
+  stroke: white;
+}
+
+.yaxis text{
+  fill: white;
+} 
