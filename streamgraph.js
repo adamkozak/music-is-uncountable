@@ -60,6 +60,7 @@ function stackMax(layer) {
 
   let yAxis = d3.axisLeft()
       .scale(y)
+      .ticks(6)
       .tickFormat(x => nFormatter(x, 3));
 
   let axishandler;
@@ -122,12 +123,12 @@ else {
 
   axishandler.select(".xaxis")
     .transition()
-    .duration(1500)    
+    .duration(2500)    
     .call(xAxis);
 
   axishandler.select(".yaxis")
     .transition()
-    .duration(1500)    
+    .duration(2500)    
     .call(yAxis);
 
   let mouseOnLayer = false;
@@ -168,9 +169,11 @@ else {
 
       streamsSum = layers.map(x => x[mousedate][1] - x[mousedate][0]).reduce((a, v) => a + v, 0)
 
-      tooltip.html(timeFormat(datearray[mousedate]) + "<br>" + d.key + ": " + nFormatter(regionSum, 3) + "<br> " + "World: " + nFormatter(streamsSum, 3)).style("visibility", "visible")
+      tooltip.html(/*timeFormat(datearray[mousedate])*/ "Week " + (mousedate+1) + "<br>" + d.key + ": " + nFormatter(regionSum, 3) + "<br> " + "World: " + nFormatter(streamsSum, 3)).style("visibility", "visible");
+
+      tooltip
         .style("left", (d3.event.pageX) + "px")   
-        .style("top", (d3.event.pageY - 28) + "px");  
+        .style("top", (d3.event.pageY - tooltip.node().getBoundingClientRect().height) + "px");  
     })
     .on("mouseout", function(d, i) {
       tooltip.transition()    
