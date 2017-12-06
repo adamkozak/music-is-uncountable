@@ -186,6 +186,7 @@ navigation
   .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ")");
 
 navigation.on("click", function() {
+    /*
 
     let countryRankingCallback = function(timeLine) {
         console.log(JSON.stringify(timeLine))
@@ -195,6 +196,7 @@ navigation.on("click", function() {
     let secDate = new Date("2017-07-08T07:00:00.000Z");
 
     getAllDocuments(db.collection('entries'), {"r":"us", "d":{ $lt: secDate, $gte: firstDate }}, countryRankingCallback, [], {_id: 0, s: 1, n:1, a:1})
+    */
 
 
     if(navigationMap) {
@@ -407,7 +409,7 @@ let songListCallback = function(list) {
         regionsArray = ["Europe","North America","South America", "Central America", "Asia","Oceania"]
         datesArray = [];
 
-        for(let i = 0; i < 52; i++) {
+        for(let i = 0; i < 34; i++) {
           let d = new Date(lowestDate.getTime());
           d.setDate(d.getDate() + i*7);
           datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
