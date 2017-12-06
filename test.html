@@ -187,6 +187,16 @@ navigation
 
 navigation.on("click", function() {
 
+    let countryRankingCallback = function(timeLine) {
+        console.log(JSON.stringify(timeLine))
+    }
+
+    let firstDate = new Date("2017-07-01T07:00:00.000Z");
+    let secDate = new Date("2017-07-08T07:00:00.000Z");
+
+    getAllDocuments(db.collection('entries'), {"r":"us", "d":{ $lt: secDate, $gte: firstDate }}, countryRankingCallback, [], {_id: 0, s: 1, n:1, a:1})
+
+
     if(navigationMap) {
 
       navigation.transition()
@@ -199,8 +209,14 @@ navigation.on("click", function() {
         .duration(1000) 
         .delay(200)    
 
+        let histogram_height = 50;
+
+        if(histogram) {
+            histogram_height = histogram.node().getBoundingClientRect().height;
+        }
+
       rankPage.transition()
-        .style("top", (navigation.node().getBoundingClientRect().height + 10) + "px")
+        .style("top", (navigation.node().getBoundingClientRect().height + histogram_height + 20) + "px")
         .duration(1000) 
         .delay(200)    
 
@@ -548,8 +564,6 @@ d3.json("world-50m.json", function(error, world) {
 
 
 d3.select(self.frameElement).style("height", height + "px");
-
-
 
 
 
