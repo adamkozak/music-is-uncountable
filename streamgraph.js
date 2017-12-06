@@ -40,6 +40,7 @@ function stackMax(layer) {
   let stack = d3.stack()
     .keys(["Europe","North America","South America", "Central America", "Asia","Oceania"])
     .order(d3.stackOrderNone)
+    //.offset(d3.stackOffsetSilhouette);
     .offset(d3.stackOffsetNone);
 
   let layers = stack(data)

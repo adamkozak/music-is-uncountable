@@ -1,6 +1,100 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
+<style>
+:root {
+    --main-row-size: 24;
+    --main-font-size: 12;
+}
+
+body {
+    overflow: hidden;
+    width: 100%;
+    font-family: 'Roboto', sans-serif;
+    font-size: var(--main-font-size);
+}
+
+div.data {
+  position: absolute;
+  padding: 0 5px;
+  overflow: hidden;
+  height: 100%;
+}
+
+div.header {
+  position: absolute;
+  width: 25%;
+  padding: 0 5px;
+  overflow: hidden;
+}
+
+div.headers {
+  position: absolute;
+  width: 100%;
+  border: 1px black;
+  border-style: solid;
+  border-radius: 5px;
+  height: var(--main-row-size);
+}
+
+div.datarow {
+  position: absolute;
+  width: 100%;
+  border: 1px rgba(0, 0, 0, 0.51) solid;
+  border-radius: 5px;
+  background: white;
+  height: var(--main-row-size);
+  overflow: hidden;
+}
+
+div.table-contrainer {
+    position: absolute;
+}
+
+div[cell_type="pos"] {
+    color: black;
+    left: 0%;
+    width: 10%;
+}
+
+div[cell_type="title"] {
+    color: black;
+    left: 10%;
+    width: 40%;
+}
+
+div[cell_type="author"] {
+    color: black;
+    left: 50%;
+    width: 25%;
+}
+
+div[cell_type="streams"] {
+    color: black;
+    left: 75%;
+    width: 25%;
+}
+
+div[is_new="enter"] {
+    background-color: rgb(255, 255, 96);
+    
+}
+
+div.table {
+  position:relative;
+  left: 0px;
+  width: 80%;
+}
+
+svg.triangle {
+    position: absolute;
+    /* width: 20px;
+    height: 20px; */
+    top: 2px;
+    left: 20px;
+}
+</style>
+
 <body style="margin: 0; background: #222222">
   <div id="container" style="width:100%; margin: 0px;">                                   
     <div id="left" style="float:left; width:75%; margin: 0px;"> 
@@ -8,10 +102,13 @@
     <div id="right" style="float:right; width:25%; margin: 0px;"> 
       <input id="song_input" hidden="true"/>
       <button id="go_button" hidden="true">Show infos</button>
+      <div id="controls" />
     </div>                   
   </div>   
   
 </body>
+
+
 
 <link rel="stylesheet" type="text/css" href="music.css">
 <link rel="stylesheet" href="complete/awesomplete.css" />
@@ -28,6 +125,9 @@
 <!--<script src="stitch.js"></script>-->
 
 <script>
+
+
+//-----------------------------------
 
 let leftDiv = document.getElementById("left");
 
@@ -56,6 +156,19 @@ let svg = d3.select("#left").append("svg")
 let map = svg.append("g")
     .attr("width", width)
     .attr("height", height);
+
+let rankPage = d3.select("#left").append("div")
+    .attr("class", "table-contrainer")
+    .style("width", width + "px")
+    .style("height", height + "px")
+/*
+    .attr("class", "node")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 0)
+    .attr("y", 0)
+    .style("width", width + "px")
+    .style("height", height + "px");*/
 
 map.append("defs").append("path")
     .datum({type: "Sphere"})
@@ -86,6 +199,11 @@ navigation.on("click", function() {
         .duration(1000) 
         .delay(200)    
 
+      rankPage.transition()
+        .style("top", (navigation.node().getBoundingClientRect().height + 10) + "px")
+        .duration(1000) 
+        .delay(200)    
+
       navigationMap = false
     } 
     else {
@@ -98,6 +216,11 @@ navigation.on("click", function() {
         .attr("transform", "translate(0, " + 0 + ")")
         .duration(1200) 
         .delay(0)     
+
+      rankPage.transition()
+        .style("top", (height + 10) + "px")
+        .duration(1000) 
+        .delay(0)   
 
       navigationMap = true
     }
@@ -425,5 +548,259 @@ d3.json("world-50m.json", function(error, world) {
 
 
 d3.select(self.frameElement).style("height", height + "px");
+
+
+
+
+
+
+let style = getComputedStyle(document.body);
+let row_size = +style.getPropertyValue('--main-row-size') + 4;
+let triangle_width = 13;
+let triangle_height = 13;
+let indexx = 1;
+let uniqueID = 0;
+
+// Create a local variable for storing previous data.
+let previousData = d3.local();
+
+// Fake data
+let tweets = {
+"tweets": [
+{"pos": 1, "title": "I really love seafood.", "author": "author1", "streams": 456546546},
+{"pos": 2, "title": "I take that back, this doesn't taste so good.", "author": "author14", "streams": 546546},
+{"pos": 3, "title": "From now on, I'm only eating cheese sandwiches.", "author": "author1324", "streams": 4645},
+{"pos": 4, "title": "Great workout!", "author": "author1454", "streams": 2354656},
+{"pos": 5, "title": "Spectacular oatmeal!", "author": "6756", "streams": 2354656},
+{"pos": 6, "title": "Amazing traffic!", "author": "author145546", "streams": 2354656},
+{"pos": 7, "title": "Just got a ticket for texting and driving!", "author": "author12343", "streams": 2354656},
+{"pos": 8, "title": "Going to have some boiled eggs.", "author": "author123543", "streams": 2354656},
+{"pos": 9, "title": "Maybe practice some gymnastics.", "author": "author134654", "streams": 2354656},
+{"pos": 10, "title": "@Roy Let's get lunch", "author": "author13453454", "streams": 567567}
+]
+}
+
+let tweets3 = {
+"tweets": [
+{"pos": 1, "title": "Nic", "author": "author1", "streams": 346454},
+{"pos": 2, "title": "Bic", "author": "author2", "streams": 4345},
+{"pos": 3, "title": "tric", "author": "author14", "streams": 2354656},
+{"pos": 4, "title": "pic", "author": "author13454", "streams": 2354656},
+{"pos": 5, "title": "Spectacular oatmeal!", "author": "author13454", "streams": 2354656},
+{"pos": 6, "title": "Amazing traffic!", "author": "author1356456", "streams": 2354656},
+{"pos": 7, "title": "Just got a ticket for texting and driving!", "author": "author1564", "streams": 2354656},
+{"pos": 8, "title": "Going to have some boiled eggs.", "author": "author134565465", "streams": 2354656},
+{"pos": 9, "title": "Maybe practice some gymnastics.", "author": "author1356546", "streams": 2354656},
+{"pos": 10, "title": "@Roy Let's get lunch", "author": "author143564565", "streams": 3453454}
+]
+}
+ 
+// toplistData - list of json-like elements
+function createToplist(toplistData){  
+    var keyValues = d3.keys(toplistData[0]);
+
+    let head = rankPage
+        .append("div")
+        .attr("class", "table")
+        .append("div")
+        .attr("class", "headers")
+
+    head.selectAll("div.header")
+        .data(keyValues)
+        .enter()
+        .append("div")
+        .attr("class", "header")
+        .attr("cell_type", (d) => {return d;})
+        .html((d) => {return d;});
+
+    d3.select("div.table")
+        .selectAll("div.datarow")
+        .data(toplistData, (d) => {return d.title;})
+        .enter()
+        .append("div")
+        .attr("class", "datarow")
+        .attr("id", function(d) { return uniqueID++; })
+        .style("height", row_size + "px")
+        .style("top", (d,i) => {return (row_size + ((d.pos-1) * row_size)) + "px";});
+
+    d3.selectAll("div.datarow")
+        .selectAll("div.data")
+        .data((d) => {return d3.entries(d);})
+        .enter()
+        .append("div")
+        .attr("class", "data")
+        .attr("cell_type", (d) => {return d.key;})
+        .html((d) => {return d.value;});
+
+    d3.selectAll("div.datarow")
+        .on("click", showDetails);
+
+    d3.selectAll("[cell_type = pos]")
+        .each(function(d) { previousData.set(this, d.value) });
+}    
+
+function transitionSheet() {
+    d3.selectAll("div.datarow")
+    .transition()
+    .duration(2000)
+    .style("top", (d,i) => {return (row_size + ((d.pos-1) * row_size)) + "px";});
+    }
+
+function sortSheet() {
+    var dataset = d3.selectAll("div.datarow").data();
+    dataset.sort((a,b) => {return a.pos > b.pos;
+        });
+
+    d3.selectAll("div.datarow")
+    .data(dataset, (d) => {return d.title;})
+    .transition()
+    .duration(2000)
+    .style("top", (d,i) => {return (row_size + ((d.pos-1) * row_size));});
+    }   
+
+function transformData() {
+
+    // Section that only create fake data for testing purposes
+    // Copy to a new variable 
+    let tweets2 = JSON.parse(JSON.stringify(tweets3));
+    // Add new record
+    if (Math.random() > 0.3){
+        while(Math.random() > 0.3){
+            tweets2.tweets.push({"pos": Math.round(Math.random()*20), "title": "Newone" + indexx++, 
+            "author": "author1" + indexx, "streams": Math.round(Math.random()*1000000)});
+        }
+    }
+    
+    // Shuffle records
+    tweets2.tweets = shuffle(tweets2.tweets);
+    //Remove some of the records
+    tweets2.tweets = tweets2.tweets.splice(0, tweets2.tweets.length-Math.round(Math.random()*2));
+    //New ranking
+    let ranking = d3.range(1, tweets2.tweets.length+1)
+    // Change position of each record
+    tweets2.tweets.forEach( (item, index) => {
+        item.pos = ranking[index];
+    });
+
+    tweets3 = JSON.parse(JSON.stringify(tweets2));
+
+    updateToplist(tweets2.tweets);
+
+    function updateToplist(newToplist){ 
+
+        // Update those that are in the table
+        let rows = d3.select("div.table")
+            .selectAll("div.datarow")
+            .call(savePreviousData)
+            .data(newToplist, (d) => {return d.title;})
+            .attr("is_new", "update");
+        
+        let cells = rows.selectAll("div.data")
+            .data((d) => {return d3.entries(d);})
+            .html((d) => {return d.value;})
+            .attr("is_new", "update");
+
+        rows.transition("sorting")
+            .delay((d) => {return 100 + (d.pos/newToplist.length) * 2000;})
+            .duration(2000)
+            .style("top", (d,i) => {return (row_size + ((d.pos-1) * row_size)) + "px";})
+            .on("start", addTriangle);
+
+        // Add new ones
+        let enterRows = rows.enter()
+            .append("div")
+            .attr("class", "datarow")
+            .attr("id", function(d) { return uniqueID++; })
+            .style("top", (d,i) => {return (row_size + ((d.pos-1) * row_size)) + "px";})
+            .style("opacity", 0.0)
+            .style("left", "-600px")
+            .style("height", row_size + "px")
+            .attr("is_new", "enter")
+            .on("click", showDetails);
+
+        let enterCells = enterRows.selectAll("div.data")
+            .data((d) => {return d3.entries(d);})
+            .enter()
+            .append("div")
+            .attr("class", "data")
+            .attr("cell_type", (d) => {return d.key;})
+            .html((d) => {return d.value;});
+        
+        enterRows.transition("new_rows")
+            .ease(d3.easeQuad)
+            .delay(3100)
+            .duration(1000)
+            .style('opacity', 1.0)
+            .style("left", "0px");
+
+        rows.exit()
+            .attr('is_new', 'exit')
+            .transition("exit_rows")
+            .ease(d3.easeQuad) //"quad" d3.v3
+            .delay(0)
+            .duration(1000)
+            .style('opacity', 0.0)
+            .style("left", "600px")
+            .remove();
+    }                   
+    function addTriangle() {
+        d3.selectAll("[cell_type = pos]").filter("*:not([is_new = exit])")
+            .append('svg')
+            .attr("class", "triangle")
+            .attr("height", triangle_height + "px")
+            .attr("width", triangle_width + "px")
+                .append('polygon')
+                .attr('points', function(d) {
+                    var diff = +previousData.get(this) - d.value;  // Retrieve previously stored data.               
+                    return diff < 0 ? "0,0 " + triangle_width + ",0 " + triangle_width/2 +"," + triangle_height + " 0,0" : 
+                            diff > 0 ? "0," + triangle_height +" " + triangle_height+","+triangle_width+" "+triangle_width/2+",0 0,"+triangle_height :
+                            "0," + triangle_height/2 + " " + triangle_width+","+triangle_width/2+" 0," + triangle_width/2;
+                    })
+                .style("fill" ,function(d) {
+                    var diff = +previousData.get(this) - d.value; 
+                    return diff < 0 ? "red" : diff > 0 ? "green" : "black";
+                    })
+                .style("stroke" ,function(d) {
+                    var diff = +previousData.get(this) - d.value; 
+                    return diff === 0 ? "black" : "";
+                    })
+                .style("opacity", 0)
+                .transition()
+                .duration(1000)
+                .ease(d3.easeLinear)
+                .style("opacity", 1);
+    }
+    function savePreviousData() {
+        d3.selectAll("[cell_type = pos]").each(function(d) { previousData.set(this, d.value) });
+    }
+    function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+}
+
+function showDetails()
+{
+    let movingRows = d3.selectAll("div.datarow")
+        .filter((d) => d.pos > d3.select(this).datum().pos);
+
+    let movingRowsNodes = movingRows.nodes();
+
+    movingRows.transition()
+        .duration(1000)
+        .style("top", (d, i) => { return +d3.select(movingRowsNodes[i]).style("top").slice(0,-2) + 30 + "px"});
+        //    return (d.pos * row_size + 30) + "px";});
+            
+            //return +.style("top").slice(0,-2) + 30 +"px";});
+}
+createToplist(tweets.tweets);
+d3.select("#controls").insert("button", ".table").on("click", sortSheet).html("sort")
+d3.select("#controls").insert("button", ".table").on("click", transitionSheet).html("transition")
+d3.select("#controls").insert("button", ".table").on("click", transformData).html("transform")
+
+
 
 </script>
