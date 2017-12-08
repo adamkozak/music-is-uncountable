@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,width=device-width,user-scalable=no" />
+
 
 <style>
 :root {
@@ -120,8 +122,8 @@ svg.triangle {
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
 <script src="utils.js"></script>
 <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
-<link rel="stylesheet" href="streamgraph.css"></script>
-<script src="streamgraph.js"></script>
+<link rel="stylesheet" href="css/streamgraph.css"></script>
+<script src="js/streamgraph.js"></script>
 <!--<script src="stitch.js"></script>-->
 
 <script>
@@ -132,16 +134,21 @@ svg.triangle {
 let leftDiv = document.getElementById("left");
 
 let width = leftDiv.clientWidth;
-let height = window.innerHeight - 10;
+let height = window.innerHeight ;
+
+let timer;
 
 /*
 let width = 1200,
     height = 600;*/
 
-let projection = d3.geoMercator()
-    .scale(150)
-    .translate([width / 2 - 80, height / 2 + 0])
-    .precision(.1);
+let scale = Math.min(width/7.2, height/4.6)
+
+let projection = d3.geoMercator()/*d3.geoNaturalEarth1()*//*d3.geoConicConformal()*//*d3.geoEquirectangular() */
+    .scale(scale)
+    //.clipExtent([width/2, height/2])
+    .translate([width / 2, height / 2])
+    .precision(10000);
 
 let path = d3.geoPath()
     .projection(projection);
@@ -153,9 +160,13 @@ let svg = d3.select("#left").append("svg")
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
+
 let map = svg.append("g")
-    .attr("width", width)
-    .attr("height", height);
+
+/*
+map
+  .attr("transform", "translate(" + (- + "," + 0 + ")");
+    */
 
 let rankPage = d3.select("#left").append("div")
     .attr("class", "table-contrainer")
@@ -178,12 +189,20 @@ map.append("defs").append("path")
 let navigationMap = true;
 
 let navigation = svg.append("image")
-    .attr("xlink:href","img/arrow_circle.svg")
-    .attr("width", 60)
-    .attr("height", 60)
+    .attr("xlink:href","img/semi.svg")
+    .attr("width", width/15)
+    .attr("height", width/30)
 
 navigation
   .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ")");
+
+function getNavigationTransform() {
+    if(navigationMap) {
+      return "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ") rotate(0)";
+    } else {
+      return "translate(" + ((width/2)+(navigation.node().getBoundingClientRect().width / 2)) + "," +  navigation.node().getBoundingClientRect().height + ") rotate(180)"
+    }
+}
 
 navigation.on("click", function() {
     /*
@@ -199,12 +218,14 @@ navigation.on("click", function() {
     */
 
 
-    if(navigationMap) {
+    if(navigationMap) { 
+
+      navigationMap = false
 
       navigation.transition()
-        .attr("transform", "translate(" + ((width/2)+(navigation.node().getBoundingClientRect().width / 2)) + "," +  navigation.node().getBoundingClientRect().height + ") rotate(180)")
+        .attr("transform", getNavigationTransform())
         .duration(1000) 
-        .delay(200)     
+        .delay(200)    
 
       map.transition()
         .attr("transform", "translate(0, " + (-height) + ")")
@@ -222,11 +243,12 @@ navigation.on("click", function() {
         .duration(1000) 
         .delay(200)    
 
-      navigationMap = false
     } 
     else {
+      navigationMap = true
+
       navigation.transition()        
-        .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ") rotate(0)")
+        .attr("transform", getNavigationTransform())
         .duration(1200) 
         .delay(0)   
 
@@ -239,8 +261,6 @@ navigation.on("click", function() {
         .style("top", (height + 10) + "px")
         .duration(1000) 
         .delay(0)   
-
-      navigationMap = true
     }
 
 
@@ -252,14 +272,14 @@ function histogramTransition() {
   if(histogram) {   
     if(navigationMap) {
       histogram.transition()
-        .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+        .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height - 10) + ")")
         .duration(1000) 
         .delay(200)   
     }
     else {   
       if(histogram) {      
         histogram.transition()
-          .attr("transform", "translate(" + (width-histogram.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
+          .attr("transform", "translate(" + /*40*/(width-histogram.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
           .duration(1200) 
           .delay(0)     
       }  
@@ -282,7 +302,7 @@ map.append("path")
     .attr("class", "graticule")
     .attr("d", path);
 
-let div = d3.select("body").append("div") 
+let countryTooltip = d3.select("body").append("div") 
     .attr("class", "tooltip")       
     .style("opacity", 0);
 
@@ -326,6 +346,15 @@ let selectedSongID;
 let countries;
 let spotify_countries;
 let streamsDict = {};
+let spotify_dict;
+let world;
+
+
+let colorScale = d3.scaleLinear()
+    .domain([1,length])
+    .interpolate(d3.interpolateHcl)
+    .range([d3.rgb("#444444"), d3.rgb('#FF4444')]);
+
 
 let getAllDocuments = function(collection, query, callback, documents, projection) {
     //console.log(query)
@@ -361,7 +390,6 @@ let songListCallback = function(list) {
   new Awesomplete(input, {
     list: songsList, 
     replace: function(item) {
-      //console.log(item.value.id);
       selectedSongID = item.value.id;
       this.input.value = item.value.text;
     }
@@ -384,168 +412,123 @@ let songListCallback = function(list) {
           let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
               return a + v;
           }, 0)
-          //console.log(d)
           streamsDict[d] = aggregation;
-          //console.log(streamsDict);
         })
 
         data = timeLine.map(function(x) {
           let region = "Unknown"
           if(x.r in CountryContinentDict) {
-            region = CountryContinentDict[x.r]
+            continent = CountryContinentDict[x.r]
           }
           else {
             console.log("Problem with" + x.r)
           }
           return {
             "value": parseInt(x.s),
-            "key": region,
+            "continent": continent,
+            "region": x.r,
+            "position": x.p,
             "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
           }
         });
 
-        //console.log(data.map(d => d.date))
         
         regionsArray = ["Europe","North America","South America", "Central America", "Asia","Oceania"]
         datesArray = [];
 
-        for(let i = 0; i < 34; i++) {
+        for(let i = 1; i < 34; i++) {
           let d = new Date(lowestDate.getTime());
           d.setDate(d.getDate() + i*7);
           datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
         }
 
-        fullData = []
+        let timelapseData = []
         for(let j = 0; j < datesArray.length; j++) {
-          fullData.push({"date": datesArray[j]})
+          timelapseData.push({"date": datesArray[j]})
+        }
+
+        for(let i = 0; i < data.length; i++) {
+          let dateIdx = datesArray.indexOf(data[i].date)
+          if(dateIdx > -1) {
+            timelapseData[dateIdx][data[i].region] = data[i];
+          }
+        }
+
+        let streamData = []
+        for(let j = 0; j < datesArray.length; j++) {
+          streamData.push({"date": datesArray[j]})
           for(let i = 0; i < regionsArray.length; i++) {
-            fullData[j][regionsArray[i]] = 0
+            streamData[j][regionsArray[i]] = 0
           }
         }
 
         for(let i = 0; i < data.length; i++) {
           let dateIdx = datesArray.indexOf(data[i].date)
-          let region = data[i].key
-
-          fullData[dateIdx][region] += data[i].value
+          if(dateIdx > -1) {
+            let region = data[i].continent
+            streamData[dateIdx][region] += data[i].value
+          }
         }
 
         let format = d3.timeParse("%Y/%m/%d");
 
-        fullData.forEach(function(d) {
+        streamData.forEach(function(d) {
           d.date = format(d.date);
         });
 
         if(histogram) {
-          histogram = chart(fullData, "palette", svg, histogram);
+          histogram = chart(streamData, "palette", svg, histogram);
         }
         else {
-          histogram = chart(fullData, "palette", svg, histogram);
+          histogram = chart(streamData, "palette", svg, histogram);
 
           histogram
-          .attr("transform", "translate(" + (-histogram.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+          .attr("transform", "translate(" + (-histogram.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height - 10) + ")")
 
           histogramTransition();
+
         }
 
-        console.log(histogram)
+        startSongTimeLapse(timelapseData);
 
       }
 
-      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1})
+      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
     }
   }
 }
 
 client.login().then(() => getAllDocuments(db.collection('songs'), {}, songListCallback, [], {_id: 0, id: 1, "Track Name": 1, "Artist": 1}))
 
-d3.json("world-50m.json", function(error, world) {
+d3.json("world-110m.json", function(error, w) {
 
   if (error) throw error;
 
-  countries = topojson.feature(world, world.objects.countries).features, neighbors = topojson.neighbors(world.objects.countries.geometries);
-  console.log(countries);
-  
+  world = w;
+
+  countries = topojson.feature(world, world.objects.countries).features
+  //let neighbors = topojson.neighbors(world.objects.countries.geometries)
+
+
   d3.json("id_dict.json", function(error, dict) {
     countries.forEach(function(d, i) {
       if(dict["" + parseInt(d.id)]) {
         d.name = dict[d.id][1]
         d.alpha2 = dict[d.id][0]
       }
+
     })
+
+    countries = countries.filter(d => d.alpha2 != "aq")
 
     d3.json("Datasets/countries.json", function(error, c) {
         spotify_countries = c;
-        let spotify_dict = {}
+        spotify_dict = {}
         spotify_countries.forEach(function(d, i) {
           spotify_dict[d] = d
         })
 
-        //console.log(spotify_dict)
-
-        countries = countries.filter(d => d.alpha2 != "aq")
-
-        map.selectAll(".country")
-          .data(countries)
-          .enter().insert("path", ".graticule")
-          .attr("class", "country")
-          .attr("d", path)
-          //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
-          .style("fill", function(d, i) { 
-            if(d.alpha2 in spotify_dict) {
-              //return d3.color("#6AE368")
-              return d3.color("#81b71a")
-            }
-            else {
-              return d3.color("#828282")
-            }
-          })
-
-          .on("mouseover", function(d) {    
-              div.transition()    
-                  .duration(200)    
-                  .style("opacity", 1);    
-              })    
-
-          .on("mousemove", function(d) {
-              if(d.name) {
-                if(streamsDict[d.alpha2] !== undefined) {
-                  div .html(d.name + "<br>Yearly Streams: " + streamsDict[d.alpha2])  
-                      .style("left", (d3.event.pageX) + "px")   
-                      .style("top", (d3.event.pageY - 28) + "px");  
-                }
-                else {
-                  div .html(d.name)  
-                      .style("left", (d3.event.pageX) + "px")   
-                      .style("top", (d3.event.pageY - 28) + "px");  
-                }
-              }
-              else {
-                div .html(d.id)  
-                    .style("left", (d3.event.pageX) + "px")   
-                    .style("top", (d3.event.pageY - 28) + "px");  
-              }
-          })
-          .on("mouseout", function(d) {   
-              div.transition()    
-                  .duration(500)    
-                  .style("opacity", 0); 
-          })
-          /*
-          .on("click", function(d) {
-
-            svg.insert("path", ".graticule")
-              .datum(topojson.mesh(world, world.objects.countries, function(a, b) { 
-                return (a.id == d.id || b.id == d.id)}))
-              .attr("class", "selectedBoundary")
-              .attr("d", path);
-          });*/
-
-          // Draw the boundaries
-          map.insert("path", ".graticule")
-            .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-            .attr("class", "boundary")
-            .attr("d", path);
+        drawMap();
 
     });
 
@@ -554,24 +537,168 @@ d3.json("world-50m.json", function(error, world) {
 
 });
 
-  function reporter(x) {
-      //console.log(x.name)
-      d3.select("#report").text(function() {
-          if(x.name) {
-            return (x.name);
+
+function drawMap(countriesColors, delta) {
+
+  map.selectAll(".country")
+    .data(countries)
+    .enter().insert("path", ".graticule")
+    .attr("class", "country")
+    .attr("d", path)
+    //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
+    .on("mouseover", function(d) {    
+        countryTooltip.transition()    
+            .duration(200)    
+            .style("opacity", 1);    
+        })    
+    .on("mousemove", function(d) {
+        if(d.name) {
+          if(streamsDict[d.alpha2] !== undefined) {
+            countryTooltip .html(d.name + "<br>Yearly Streams: " + streamsDict[d.alpha2])  
+                .style("left", (d3.event.pageX) + "px")   
+                .style("top", (d3.event.pageY - 28) + "px");  
           }
-          return (x.id);
-      });
+          else {
+            countryTooltip .html(d.name)  
+                .style("left", (d3.event.pageX) + "px")   
+                .style("top", (d3.event.pageY - 28) + "px");  
+          }
+        }
+        else {
+          countryTooltip .html(d.id)  
+              .style("left", (d3.event.pageX) + "px")   
+              .style("top", (d3.event.pageY - 28) + "px");  
+        }
+    })
+    .on("mouseout", function(d) {   
+        countryTooltip.transition()    
+            .duration(500)    
+            .style("opacity", 0); 
+    })
+
+
+
+  map.selectAll(".boundary").remove()
+  // Draw the boundaries
+  map.insert("path", ".graticule")
+    .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+    .attr("class", "boundary")
+    .attr("d", path);
+
+
+  let strokeWidth = (width/2000.0) 
+  console.log(strokeWidth);
+  map.selectAll(".boundary")
+    .style("stroke-width", strokeWidth + "px")
+
+
+
+  let time = 0
+  if(delta) {
+    time = delta;
   }
+
+  map.selectAll(".country") 
+    .transition()
+    .duration(time)
+    .style("fill", function(d, i) { 
+      if(d.alpha2 in spotify_dict) {
+        if(countriesColors != undefined) {
+          if(d.alpha2 in countriesColors) {
+            return countriesColors[d.alpha2]
+          }
+          else {
+            return d3.color("#828282")
+          }
+        }
+        else {
+          //return d3.color("#6AE368")
+          return d3.color(spotify_green)
+        }
+      }
+      else {
+        return d3.color("#424242")
+      }
+    })
+}
+
+function startSongTimeLapse(data, speed) {
+
+  let delta = 1000;
+  if(speed) {
+    delta = 1 / speed;
+  }
+
+  let week = 0;
+
+  timer = setInterval(function() {
+    let countriesColors = {}
+    for(let i = 0; i < spotify_countries.length; i++) {
+      let region = spotify_countries[i];
+      if(region in data[week]) {
+        
+        let position = data[week][region].position;
+        /*let shade = (100 - position) * 255 / 99.0;
+        countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
+        countriesColors[region] = colorScale(position/100.0)
+      }
+    }
+    drawMap(countriesColors, delta);
+
+    week += 1;
+    if(week == data.length) {
+      stopSongTimeLapse();
+    }
+  }, delta);
+  playing = true;
+}
+
+function stopSongTimeLapse() {
+  clearInterval(timer);
+  playing = false;
+}
+
+
+function redraw() {
+  width = leftDiv.clientWidth;
+  height = window.innerHeight ;
+
+
+  navigation
+    .attr("width", width/15)
+    .attr("height", width/30)
+    .attr("transform", getNavigationTransform());
+
+  scale = Math.min(width/7.2, height/4.6)
+
+  projection
+    .scale(scale)
+    //.clipExtent([width/2, height/2])
+    .translate([width / 2, height / 2.2])
+    
+  d3.select("svg")
+    .attr("width", width)
+    .attr("height", height)
+  
+  d3.selectAll("path").filter(".country")
+    .attr('d', path);
+
+  d3.selectAll("path").filter(".boundary")
+    .style("stroke-width", (width/2000.0) + "px")
+    .attr('d', path);
+
+}
+
+window.addEventListener("resize", redraw);
+
 
 
 d3.select(self.frameElement).style("height", height + "px");
 
-
-
-
 let style = getComputedStyle(document.body);
 let row_size = +style.getPropertyValue('--main-row-size') + 4;
+
+let spotify_green = style.getPropertyValue('--main-spotify-green');
 let triangle_width = 13;
 let triangle_height = 13;
 let indexx = 1;
@@ -645,7 +772,7 @@ function createToplist(toplistData){
         .enter()
         .append("div")
         .attr("class", "data")
-        .attr("cell_type", (d) => {return d.key;})
+        .attr("cell_type", (d) => {return d.continent;})
         .html((d) => {return d.value;});
 
     d3.selectAll("div.datarow")
@@ -739,7 +866,7 @@ function transformData() {
             .enter()
             .append("div")
             .attr("class", "data")
-            .attr("cell_type", (d) => {return d.key;})
+            .attr("cell_type", (d) => {return d.continent;})
             .html((d) => {return d.value;});
         
         enterRows.transition("new_rows")

@@ -330,6 +330,8 @@ d3.json("world-50m.json", function(error, world) {
               div.transition()    
                   .duration(200)    
                   .style("opacity", 1);   
+
+                  console.log(d.alpha2)
 				  
 			let region = d.alpha2;
 			g.selectAll('.country')
