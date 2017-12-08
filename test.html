@@ -124,6 +124,7 @@ svg.triangle {
 <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
 <link rel="stylesheet" href="css/streamgraph.css"></script>
 <script src="js/streamgraph.js"></script>
+<script src="js/worldmap.js"></script>
 <!--<script src="stitch.js"></script>-->
 
 <script>
@@ -136,37 +137,13 @@ let leftDiv = document.getElementById("left");
 let width = leftDiv.clientWidth;
 let height = window.innerHeight ;
 
-let timer;
-
-/*
-let width = 1200,
-    height = 600;*/
-
-let scale = Math.min(width/7.2, height/4.6)
-
-let projection = d3.geoMercator()/*d3.geoNaturalEarth1()*//*d3.geoConicConformal()*//*d3.geoEquirectangular() */
-    .scale(scale)
-    //.clipExtent([width/2, height/2])
-    .translate([width / 2, height / 2])
-    .precision(10000);
-
-let path = d3.geoPath()
-    .projection(projection);
-
-let graticule = d3.geoGraticule();
 
 let svg = d3.select("#left").append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
-
-let map = svg.append("g")
-
-/*
-map
-  .attr("transform", "translate(" + (- + "," + 0 + ")");
-    */
+let worldMap = new WorldMap(width, height, svg);
 
 let rankPage = d3.select("#left").append("div")
     .attr("class", "table-contrainer")
@@ -181,10 +158,6 @@ let rankPage = d3.select("#left").append("div")
     .style("width", width + "px")
     .style("height", height + "px");*/
 
-map.append("defs").append("path")
-    .datum({type: "Sphere"})
-    .attr("id", "sphere")
-    .attr("d", path);
 
 let navigationMap = true;
 
@@ -205,18 +178,6 @@ function getNavigationTransform() {
 }
 
 navigation.on("click", function() {
-    /*
-
-    let countryRankingCallback = function(timeLine) {
-        console.log(JSON.stringify(timeLine))
-    }
-
-    let firstDate = new Date("2017-07-01T07:00:00.000Z");
-    let secDate = new Date("2017-07-08T07:00:00.000Z");
-
-    getAllDocuments(db.collection('entries'), {"r":"us", "d":{ $lt: secDate, $gte: firstDate }}, countryRankingCallback, [], {_id: 0, s: 1, n:1, a:1})
-    */
-
 
     if(navigationMap) { 
 
@@ -227,7 +188,7 @@ navigation.on("click", function() {
         .duration(1000) 
         .delay(200)    
 
-      map.transition()
+      worldMap.map.transition()
         .attr("transform", "translate(0, " + (-height) + ")")
         .duration(1000) 
         .delay(200)    
@@ -252,7 +213,7 @@ navigation.on("click", function() {
         .duration(1200) 
         .delay(0)   
 
-      map.transition()
+      worldMap.map.transition()
         .attr("transform", "translate(0, " + 0 + ")")
         .duration(1200) 
         .delay(0)     
@@ -296,11 +257,6 @@ map.append("rect")
     .attr("height", "100%")
     .attr("fill", d3.color("#00FFFFFF"));*/
 
-
-map.append("path")
-    .datum(graticule)
-    .attr("class", "graticule")
-    .attr("d", path);
 
 let countryTooltip = d3.select("body").append("div") 
     .attr("class", "tooltip")       
@@ -528,99 +484,15 @@ d3.json("world-110m.json", function(error, w) {
           spotify_dict[d] = d
         })
 
-        drawMap();
+        worldMap.drawMap();
 
     });
 
   });
-  
 
 });
 
 
-function drawMap(countriesColors, delta) {
-
-  map.selectAll(".country")
-    .data(countries)
-    .enter().insert("path", ".graticule")
-    .attr("class", "country")
-    .attr("d", path)
-    //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
-    .on("mouseover", function(d) {    
-        countryTooltip.transition()    
-            .duration(200)    
-            .style("opacity", 1);    
-        })    
-    .on("mousemove", function(d) {
-        if(d.name) {
-          if(streamsDict[d.alpha2] !== undefined) {
-            countryTooltip .html(d.name + "<br>Yearly Streams: " + streamsDict[d.alpha2])  
-                .style("left", (d3.event.pageX) + "px")   
-                .style("top", (d3.event.pageY - 28) + "px");  
-          }
-          else {
-            countryTooltip .html(d.name)  
-                .style("left", (d3.event.pageX) + "px")   
-                .style("top", (d3.event.pageY - 28) + "px");  
-          }
-        }
-        else {
-          countryTooltip .html(d.id)  
-              .style("left", (d3.event.pageX) + "px")   
-              .style("top", (d3.event.pageY - 28) + "px");  
-        }
-    })
-    .on("mouseout", function(d) {   
-        countryTooltip.transition()    
-            .duration(500)    
-            .style("opacity", 0); 
-    })
-
-
-
-  map.selectAll(".boundary").remove()
-  // Draw the boundaries
-  map.insert("path", ".graticule")
-    .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
-    .attr("class", "boundary")
-    .attr("d", path);
-
-
-  let strokeWidth = (width/2000.0) 
-  console.log(strokeWidth);
-  map.selectAll(".boundary")
-    .style("stroke-width", strokeWidth + "px")
-
-
-
-  let time = 0
-  if(delta) {
-    time = delta;
-  }
-
-  map.selectAll(".country") 
-    .transition()
-    .duration(time)
-    .style("fill", function(d, i) { 
-      if(d.alpha2 in spotify_dict) {
-        if(countriesColors != undefined) {
-          if(d.alpha2 in countriesColors) {
-            return countriesColors[d.alpha2]
-          }
-          else {
-            return d3.color("#828282")
-          }
-        }
-        else {
-          //return d3.color("#6AE368")
-          return d3.color(spotify_green)
-        }
-      }
-      else {
-        return d3.color("#424242")
-      }
-    })
-}
 
 function startSongTimeLapse(data, speed) {
 
@@ -643,7 +515,7 @@ function startSongTimeLapse(data, speed) {
         countriesColors[region] = colorScale(position/100.0)
       }
     }
-    drawMap(countriesColors, delta);
+    worldMap.drawMap(countriesColors, delta);
 
     week += 1;
     if(week == data.length) {
@@ -669,24 +541,13 @@ function redraw() {
     .attr("height", width/30)
     .attr("transform", getNavigationTransform());
 
-  scale = Math.min(width/7.2, height/4.6)
 
-  projection
-    .scale(scale)
-    //.clipExtent([width/2, height/2])
-    .translate([width / 2, height / 2.2])
-    
   d3.select("svg")
     .attr("width", width)
     .attr("height", height)
-  
-  d3.selectAll("path").filter(".country")
-    .attr('d', path);
 
-  d3.selectAll("path").filter(".boundary")
-    .style("stroke-width", (width/2000.0) + "px")
-    .attr('d', path);
-
+  worldMap.resize(width, height)
+    
 }
 
 window.addEventListener("resize", redraw);
