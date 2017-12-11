@@ -1,6 +1,6 @@
 legendHeightWidthRation = 8;
 
-function setRankLegend(width, height, colorScale, svg) {
+function setRankLegend(width, height, colorScales, svg) {
 
     if(height / width > legendHeightWidthRation) {
         height = width * legendHeightWidthRation;
@@ -8,18 +8,49 @@ function setRankLegend(width, height, colorScale, svg) {
         width = height / legendHeightWidthRation;
     }
 
+
+    removeRankLegend(svg)
+
+    let legend = svg.append("g");
+
+    let nbScales = Object.keys(colorScales).length;
+    let i = 0;
+    let rectWidth = (1.0 * width)/nbScales;
+    for(key in colorScales) {
+        drawRectangleScale(rectWidth, height, i * rectWidth, colorScales[key], svg, legend, i)
+        i++;
+    }
+
+
+    // create a scale and axis for the legend
+    let legendScale = d3.scaleLinear()
+        .domain([1, 100])
+        .range([0, height]);
+
+    let legendAxis = d3.axisRight()
+        .scale(legendScale)
+        .tickValues([1, 10, 50, 100])
+        .tickFormat(x => { return "Rank: " + x});
+
+    legend.append("g")
+        .attr("transform", "translate(" + width + ", 0)")
+        .attr("class", "rightaxis")
+        .call(legendAxis);
+
+    return legend;
+}
+
+function drawRectangleScale(width, height, x1, colorScale, svg, legend, id) {
     scale = []
     for(let i = 10; i >= 0; i--) {
       scale.push(colorScale(i/10.0))
     }
-
-    removeRankLegend(svg)
-
-    // append gradient bar
+    console.log(scale)
+        // append gradient bar
     var gradient = svg.append('defs')
         .attr("class", "legend")
         .append('linearGradient')
-        .attr('id', 'gradient')
+        .attr('id', 'gradient' + id)
         .attr('x1', '0%') // bottom
         .attr('y1', '100%')
         .attr('x2', '0%') // to top
@@ -42,32 +73,13 @@ function setRankLegend(width, height, colorScale, svg) {
             .attr('stop-opacity', 1);
     });
 
-    let legend = svg.append("g");
-
     legend.append('rect')
         .attr("class", 'legendrect')
-        .attr('x1', 0)
-        .attr('y1', 0)
+        .attr('x', x1)
+        .attr('y', 0)
         .attr('width', width)
         .attr('height', height)
-        .style('fill', 'url(#gradient)');
-
-    // create a scale and axis for the legend
-    let legendScale = d3.scaleLinear()
-        .domain([1, 100])
-        .range([0, height]);
-
-    let legendAxis = d3.axisRight()
-        .scale(legendScale)
-        .tickValues([1, 10, 50, 100])
-        .tickFormat(x => { return "Rank: " + x});
-
-    legend.append("g")
-        .attr("transform", "translate(" + width + ", 0)")
-        .attr("class", "rightaxis")
-        .call(legendAxis);
-
-    return legend;
+        .style('fill', 'url(#gradient' + id + ')');
 }
 
 function removeRankLegend(svg) {

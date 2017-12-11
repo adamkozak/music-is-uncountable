@@ -224,10 +224,10 @@ let colorScales = {
 
 for(let continent in continentColorsDict) {
   colorScales[continent] =  d3.scaleLinear()
-                              .domain([0,0.1,1])
+                              .domain([0,0.2,1])
                               //.interpolate(d3.interpolateHcl)
                               .interpolate(d3.interpolateRgb)
-                              .range([d3.rgb(continentColorsDict[continent]), d3.interpolateRgb(d3.rgb(continentColorsDict[continent]),"#444444")(0.5), d3.rgb("#444444")]);
+                              .range([d3.rgb(continentColorsDict[continent]), d3.interpolateRgb(d3.rgb(continentColorsDict[continent]),"#444444")(0.8), d3.rgb("#333333")]);
 }
 
 
@@ -511,6 +511,10 @@ let songListCallback = function(list) {
 
         }
 
+        let legend = setRankLegend(width/30, height/2, colorScales, svg);
+        legend
+          .attr("transform", "translate(" + 10 + ", " + (height/2 - legend.node().getBoundingClientRect().height/2) + ")")
+
         //resize();
 
 
@@ -631,9 +635,6 @@ function resize() {
     //streamGraph.resize(width/2, height/6)
     streamGraphTransition(0);
 
-    /*let legend = setRankLegend(width/30, height/2, colorScale, svg);
-    legend
-      .attr("transform", "translate(" + 10 + ", " + (height/2 - legend.node().getBoundingClientRect().height/2) + ")")*/
   }
 
 
