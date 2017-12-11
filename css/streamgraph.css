@@ -1,0 +1,35 @@
+.xaxis line{
+  stroke: white;
+}
+
+.xaxis path{
+  stroke: white;
+}
+
+.xaxis text{
+  fill: white;
+  -webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+} 
+
+.yaxis line{
+  stroke: white;
+}
+
+.yaxis path{
+  stroke: white;
+}
+
+.yaxis text{
+  fill: white;
+  -webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+} 
