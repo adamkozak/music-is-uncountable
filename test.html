@@ -132,6 +132,8 @@ svg.triangle {
 
 //-----------------------------------
 
+let timer;
+
 let leftDiv = document.getElementById("left");
 
 let width = leftDiv.clientWidth;
@@ -186,23 +188,23 @@ navigation.on("click", function() {
       navigation.transition()
         .attr("transform", getNavigationTransform())
         .duration(1000) 
-        .delay(200)    
+        .delay(0)    
 
       worldMap.map.transition()
         .attr("transform", "translate(0, " + (-height) + ")")
         .duration(1000) 
-        .delay(200)    
+        .delay(0)    
 
-        let histogram_height = 50;
+        let streamGraph_height = 50;
 
-        if(histogram) {
-            histogram_height = histogram.node().getBoundingClientRect().height;
+        if(streamGraph) {
+            streamGraph_height = streamGraph.streamGraph.node().getBoundingClientRect().height;
         }
 
       rankPage.transition()
-        .style("top", (navigation.node().getBoundingClientRect().height + histogram_height + 20) + "px")
+        .style("top", (navigation.node().getBoundingClientRect().height + streamGraph_height + 20) + "px")
         .duration(1000) 
-        .delay(200)    
+        .delay(0)    
 
     } 
     else {
@@ -225,25 +227,23 @@ navigation.on("click", function() {
     }
 
 
-    histogramTransition();
+    streamGraphTransition(1000);
   })
 
-function histogramTransition() {
+function streamGraphTransition(delay) {
 
-  if(histogram) {   
+  if(streamGraph) {   
     if(navigationMap) {
-      histogram.transition()
-        .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height - 10) + ")")
-        .duration(1000) 
-        .delay(200)   
+      streamGraph.streamGraph.transition()
+        .attr("transform", "translate(" + ((width/2)-(streamGraph.streamGraph.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+        .duration(delay) 
+        .delay(0)   
     }
-    else {   
-      if(histogram) {      
-        histogram.transition()
-          .attr("transform", "translate(" + /*40*/(width-histogram.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
-          .duration(1200) 
-          .delay(0)     
-      }  
+    else {      
+      streamGraph.streamGraph.transition()
+        .attr("transform", "translate(" + /*40*/(width-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
+        .duration(delay) 
+        .delay(0)   
     }
   }
 }
@@ -262,7 +262,7 @@ let countryTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")       
     .style("opacity", 0);
 
-let histogram;
+let streamGraph;
 
 
 const client = new stitch.StitchClient('dataviz-xeqhx');
@@ -432,18 +432,27 @@ let songListCallback = function(list) {
           d.date = format(d.date);
         });
 
-        if(histogram) {
-          histogram = chart(streamData, "palette", svg, histogram);
+        if(streamGraph) {
+          streamGraph.setData(streamData);
+          streamGraphTransition(1000);
+          //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
         }
         else {
-          histogram = chart(streamData, "palette", svg, histogram);
+          streamGraph = new StreamGraph(width, height/6, streamData, "palette", svg)
+          streamGraph.streamGraph 
+            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+
+          streamGraphTransition(1000);
+          /*
+          histogram = chart(width, height/6, streamData, "palette", svg);
 
           histogram
           .attr("transform", "translate(" + (-histogram.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height - 10) + ")")
 
-          histogramTransition();
+          histogramTransition();*/
 
         }
+
 
         startSongTimeLapse(timelapseData);
 
@@ -503,6 +512,10 @@ function startSongTimeLapse(data, speed) {
 
   let week = 0;
 
+  if(data[week] == undefined) {
+    console.log(data)
+  }
+
   timer = setInterval(function() {
     let countriesColors = {}
     for(let i = 0; i < spotify_countries.length; i++) {
@@ -516,6 +529,7 @@ function startSongTimeLapse(data, speed) {
       }
     }
     worldMap.drawMap(countriesColors, delta);
+    streamGraph.setTimeStamp(week);
 
     week += 1;
     if(week == data.length) {
@@ -547,6 +561,11 @@ function redraw() {
     .attr("height", height)
 
   worldMap.resize(width, height)
+
+  if(streamGraph) {
+    streamGraph.resize(width/2, height/6)
+    streamGraphTransition(0);
+  }
     
 }
 

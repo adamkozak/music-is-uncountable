@@ -5,7 +5,6 @@ class WorldMap {
 	    this.height = height;
 	    this.width = width;
 
-	  let timer;
 
 		let scale = Math.min(width/7.2, height/4.6)
 
