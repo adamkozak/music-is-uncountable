@@ -4,6 +4,8 @@
 
 
 <style>
+
+
 :root {
     --main-row-size: 24;
     --main-font-size: 12;
@@ -124,6 +126,8 @@ svg.triangle {
 <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
 <link rel="stylesheet" href="css/streamgraph.css"></script>
 <script src="js/streamgraph.js"></script>
+<link rel="stylesheet" href="css/ranklegend.css"></script>
+<script src="js/ranklegend.js"></script>
 <script src="js/worldmap.js"></script>
 <!--<script src="stitch.js"></script>-->
 
@@ -139,13 +143,100 @@ let leftDiv = document.getElementById("left");
 let width = leftDiv.clientWidth;
 let height = window.innerHeight ;
 
+/*
+map.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");*/
+/*
+map.append("rect")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .attr("fill", d3.color("#00FFFFFF"));*/
+
+
+let countryTooltip = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
+let streamGraph;
+let timelapseData;
+
+
+const client = new stitch.StitchClient('dataviz-xeqhx');
+const db = client.service('mongodb', 'mongodb-atlas').db('music');
+
+
+const continents = ["Europe","North America","Latin America"/*"South America", "Central America"*/, "Asia & Oceania"/* "Asia","Oceania"*/]
+
+const NorthAmerica = ["us","ca"];
+const CentralAmerica = ["do","pa","mx","cr","gt","sv","hn"];
+const SouthAmerica = ["ar","br","ec","bo","uy","cl","py","pe","co"];
+const LatinAmerica = CentralAmerica.concat(SouthAmerica);
+const Asia = ["jp","ph","id","my","sg","hk","tw"];
+const Europe = ["se","hu","pl","be","gr","es","fi","at","ch","sk","gb","pt","is","de","fr","it","nl","cz","cy","dk","ie","ee","lt","no","tr","lv"];
+const Oceania = ["au","nz"];
+const AsiaOceania = Asia.concat(Oceania);
+
+const continentColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6"];
+const continentColorsDict = {
+  "Europe": continentColors[0],
+  "North America": continentColors[1],
+  "Latin America": continentColors[2],
+  "Asia & Oceania": continentColors[3]
+}
+
+
+let CountryContinentDict = {};
+for(let i = 0; i < NorthAmerica.length; i++) {
+  CountryContinentDict[NorthAmerica[i]] = "North America"
+}
+for(let i = 0; i < CentralAmerica.length; i++) {
+  CountryContinentDict[CentralAmerica[i]] = "Central America"
+}
+for(let i = 0; i < SouthAmerica.length; i++) {
+  CountryContinentDict[SouthAmerica[i]] = "South America"
+} 
+for(let i = 0; i < LatinAmerica.length; i++) {
+  CountryContinentDict[LatinAmerica[i]] = "Latin America"
+} 
+for(let i = 0; i < Europe.length; i++) {
+  CountryContinentDict[Europe[i]] = "Europe"
+}
+for(let i = 0; i < Asia.length; i++) {
+  CountryContinentDict[Asia[i]] = "Asia"
+}
+for(let i = 0; i < Oceania.length; i++) {
+  CountryContinentDict[Oceania[i]] = "Oceania"
+}
+for(let i = 0; i < AsiaOceania.length; i++) {
+  CountryContinentDict[AsiaOceania[i]] = "Asia & Oceania"
+}
+
+
+let colorScale = d3.scaleLinear()
+    .domain([0,1])
+    //.interpolate(d3.interpolateHcl)
+    .interpolate(d3.interpolateRgb)
+    .range([d3.rgb('#FF4444'), d3.rgb("#444444")]);
+
+let colorScales = {
+}
+
+for(let continent in continentColorsDict) {
+  colorScales[continent] =  d3.scaleLinear()
+                              .domain([0,0.1,1])
+                              //.interpolate(d3.interpolateHcl)
+                              .interpolate(d3.interpolateRgb)
+                              .range([d3.rgb(continentColorsDict[continent]), d3.interpolateRgb(d3.rgb(continentColorsDict[continent]),"#444444")(0.5), d3.rgb("#444444")]);
+}
+
 
 let svg = d3.select("#left").append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
-let worldMap = new WorldMap(width, height, svg);
+let worldMap = new WorldMap(width * 0.8, height * 0.9, svg, continentColorsDict, CountryContinentDict);
 
 let rankPage = d3.select("#left").append("div")
     .attr("class", "table-contrainer")
@@ -247,53 +338,6 @@ function streamGraphTransition(delay) {
     }
   }
 }
-/*
-map.append("use")
-    .attr("class", "fill")
-    .attr("xlink:href", "#sphere");*/
-/*
-map.append("rect")
-    .attr("width", "100%")
-    .attr("height", "100%")
-    .attr("fill", d3.color("#00FFFFFF"));*/
-
-
-let countryTooltip = d3.select("body").append("div") 
-    .attr("class", "tooltip")       
-    .style("opacity", 0);
-
-let streamGraph;
-
-
-const client = new stitch.StitchClient('dataviz-xeqhx');
-const db = client.service('mongodb', 'mongodb-atlas').db('music');
-
-const NorthAmerica = ["us","ca"];
-const CentralAmerica = ["do","pa","mx","cr","gt","sv","hn"];
-const SouthAmerica = ["ar","br","ec","bo","uy","cl","py","pe","co"];
-const Asia = ["jp","ph","id","my","sg","hk","tw"];
-const Europe = ["se","hu","pl","be","gr","es","fi","at","ch","sk","gb","pt","is","de","fr","it","nl","cz","cy","dk","ie","ee","lt","no","tr","lv"];
-const Oceania = ["au","nz"];
-
-let CountryContinentDict = {};
-for(let i = 0; i < NorthAmerica.length; i++) {
-  CountryContinentDict[NorthAmerica[i]] = "North America"
-}
-for(let i = 0; i < CentralAmerica.length; i++) {
-  CountryContinentDict[CentralAmerica[i]] = "Central America"
-}
-for(let i = 0; i < SouthAmerica.length; i++) {
-  CountryContinentDict[SouthAmerica[i]] = "South America"
-}
-for(let i = 0; i < Europe.length; i++) {
-  CountryContinentDict[Europe[i]] = "Europe"
-}
-for(let i = 0; i < Asia.length; i++) {
-  CountryContinentDict[Asia[i]] = "Asia"
-}
-for(let i = 0; i < Oceania.length; i++) {
-  CountryContinentDict[Oceania[i]] = "Oceania"
-}
 
 const lowestDate = new Date("2017-01-01T12:00:00.000Z");
 let midDate = new Date("2017-07-01T00:00:00.000Z");
@@ -305,11 +349,20 @@ let streamsDict = {};
 let spotify_dict;
 let world;
 
+function linspace(start, end, n) {
+    var out = [];
+    var delta = (end - start) / (n - 1);
 
-let colorScale = d3.scaleLinear()
-    .domain([1,length])
-    .interpolate(d3.interpolateHcl)
-    .range([d3.rgb("#444444"), d3.rgb('#FF4444')]);
+    var i = 0;
+    while(i < (n - 1)) {
+        out.push(start + (i * delta));
+        i++;
+    }
+
+    out.push(end);
+    return out;
+}
+
 
 
 let getAllDocuments = function(collection, query, callback, documents, projection) {
@@ -389,7 +442,7 @@ let songListCallback = function(list) {
         });
 
         
-        regionsArray = ["Europe","North America","South America", "Central America", "Asia","Oceania"]
+        regionsArray = ["Europe","North America","Latin America"/*"South America", "Central America"*/, "Asia & Oceania"/*"Asia","Oceania"*/]
         datesArray = [];
 
         for(let i = 1; i < 34; i++) {
@@ -398,7 +451,7 @@ let songListCallback = function(list) {
           datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
         }
 
-        let timelapseData = []
+        timelapseData = []
         for(let j = 0; j < datesArray.length; j++) {
           timelapseData.push({"date": datesArray[j]})
         }
@@ -438,23 +491,28 @@ let songListCallback = function(list) {
           //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
         }
         else {
-          streamGraph = new StreamGraph(width, height/6, streamData, "palette", svg)
+          streamGraphListener = {
+            buttonPressed(playing) {
+              if(playing) {
+                startSongTimeLapse(timelapseData, 1);
+                console.log("Start timelapse")
+              } else {
+                stopSongTimeLapse();
+                console.log("Stop timelapse")
+              }
+            }
+          }
+
+          streamGraph = new StreamGraph(width, height/6, streamData, svg, streamGraphListener, continentColors, null)
           streamGraph.streamGraph 
             .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
 
           streamGraphTransition(1000);
-          /*
-          histogram = chart(width, height/6, streamData, "palette", svg);
-
-          histogram
-          .attr("transform", "translate(" + (-histogram.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height - 10) + ")")
-
-          histogramTransition();*/
 
         }
 
+        //resize();
 
-        startSongTimeLapse(timelapseData);
 
       }
 
@@ -507,9 +565,10 @@ function startSongTimeLapse(data, speed) {
 
   let delta = 1000;
   if(speed) {
-    delta = 1 / speed;
+    delta = 1000 / speed;
   }
 
+  let it = 0;
   let week = 0;
 
   if(data[week] == undefined) {
@@ -517,25 +576,31 @@ function startSongTimeLapse(data, speed) {
   }
 
   timer = setInterval(function() {
-    let countriesColors = {}
-    for(let i = 0; i < spotify_countries.length; i++) {
-      let region = spotify_countries[i];
-      if(region in data[week]) {
-        
-        let position = data[week][region].position;
-        /*let shade = (100 - position) * 255 / 99.0;
-        countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
-        countriesColors[region] = colorScale(position/100.0)
+    streamGraph.setTimeStamp(it/10.0);
+    if(it%10 == 0) {
+      let countriesColors = {}
+      for(let i = 0; i < spotify_countries.length; i++) {
+        let region = spotify_countries[i];
+        if(region in data[week]) {
+          
+          let position = data[week][region].position;
+          /*let shade = (100 - position) * 255 / 99.0;
+          countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
+
+          countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)
+          //countriesColors[region] = colorScale(position/100.0)
+        }
+      }
+      worldMap.drawMap(countriesColors, delta);
+
+      week += 1;
+      if(week == data.length) {
+        streamGraph.pause();
+        stopSongTimeLapse();
       }
     }
-    worldMap.drawMap(countriesColors, delta);
-    streamGraph.setTimeStamp(week);
-
-    week += 1;
-    if(week == data.length) {
-      stopSongTimeLapse();
-    }
-  }, delta);
+    it++;
+  }, delta/10);
   playing = true;
 }
 
@@ -545,7 +610,7 @@ function stopSongTimeLapse() {
 }
 
 
-function redraw() {
+function resize() {
   width = leftDiv.clientWidth;
   height = window.innerHeight ;
 
@@ -563,10 +628,23 @@ function redraw() {
   worldMap.resize(width, height)
 
   if(streamGraph) {
-    streamGraph.resize(width/2, height/6)
+    //streamGraph.resize(width/2, height/6)
     streamGraphTransition(0);
+
+    /*let legend = setRankLegend(width/30, height/2, colorScale, svg);
+    legend
+      .attr("transform", "translate(" + 10 + ", " + (height/2 - legend.node().getBoundingClientRect().height/2) + ")")*/
   }
+
+
     
+}
+
+function redraw() {
+  resize();
+  if(streamGraph) {
+    streamGraph.resize(width/2, height/6)
+  }
 }
 
 window.addEventListener("resize", redraw);
@@ -824,6 +902,8 @@ d3.select("#controls").insert("button", ".table").on("click", sortSheet).html("s
 d3.select("#controls").insert("button", ".table").on("click", transitionSheet).html("transition")
 d3.select("#controls").insert("button", ".table").on("click", transformData).html("transform")
 
+
+redraw();
 
 
 </script>

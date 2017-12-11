@@ -1,8 +1,8 @@
-timeFormat = d3.timeFormat("%Y/%m/%d");
+let timeFormat = d3.timeFormat("%Y/%m/%d");
 
-margin = {top: 20, right: 0, bottom: 30, left: 40};
+let margin = {top: 20, right: 0, bottom: 30, left: 40};
 
-ratio_width_length = 4.0;
+let ratio_width_length = 4.0;
 
 function getTranslation(transform) {
   // Create a dummy g for calculation purposes only. This will never
@@ -29,23 +29,33 @@ function stackMax(layer) {
 class StreamGraph {
 
 
-  constructor(width, height, data, color, svg) {
+  constructor(width, height, data, svg, listener, colorrange = null, color = "blue") {
+
+    this.listener = listener;
 
     this.colorrange = [];
 
-    if(color == "palette") {
-      this.colorrange = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
-    }
-    else if (color == "blue") {
-      this.colorrange = ["#045A8D", "#2B8CBE", "#54A9CF", "#86BDDB", "#A0D1E6", "#D1EEF6"];
+    if(colorrange) {
+      this.colorrange = colorrange
+    } 
+    else {
+      if(color == "palette") {
+        this.colorrange = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6"];
+      }
+      else if (color == "blue") {
+        this.colorrange = ["#045A8D", "#2B8CBE", "#54A9CF", "#86BDDB", "#A0D1E6", "#D1EEF6"];
+      }
+      else if (color == "spotify_green") {
+        this.colorrange = ["#0A4820", "#0E6429", "#1A893F", "#1DB954", "#2BD974", "#5DFFA4"];
+      }
+      else if (color == "pink") {
+        this.colorrange = ["#980043", "#DD1C77", "#DF65B0", "#C994C7", "#D4B9DA", "#F1EEF6"];
+      }
+      else if (color == "orange") {
+        this.colorrange = ["#B30000", "#E34A33", "#FC8D59", "#FDBB84", "#FDD49E", "#FEF0D9"];
+      }
     }
 
-    else if (color == "pink") {
-      this.colorrange = ["#980043", "#DD1C77", "#DF65B0", "#C994C7", "#D4B9DA", "#F1EEF6"];
-    }
-    else if (color == "orange") {
-      this.colorrange = ["#B30000", "#E34A33", "#FC8D59", "#FDBB84", "#FDD49E", "#FEF0D9"];
-    }
 
     this.z = d3.scaleOrdinal()
       .range(this.colorrange);
@@ -97,8 +107,50 @@ class StreamGraph {
 
     this.applyNewData();
 
-    this.resize(width, height);
+    this.drawPlayButton();
+    this.playing = false;
 
+    this.resize(width, height);
+  }
+
+  drawPlayButton() {
+    this.streamGraph.select(".pausebutton").remove();
+    this.streamGraph.select(".playbutton").remove();
+    this.playButton = this.streamGraph.append("image")
+      .attr("class", "playbutton")
+      .attr("xlink:href","img/play.svg")
+      .attr("width", this.height/2)
+      .attr("height", this.height/2)
+      .attr("x", (-this.height/2  - margin.left))
+      .attr("y", this.height/2);
+
+    let _this = this;
+
+    this.playButton.on("click", function() { 
+      _this.playing = true;
+      _this.listener.buttonPressed(true);
+      _this.drawPauseButton();
+    });
+  }
+
+  drawPauseButton() {
+    this.streamGraph.select(".playbutton").remove();
+    this.streamGraph.select(".pausebutton").remove();
+    this.pauseButton = this.streamGraph.append("image")
+      .attr("class", "pausebutton")
+      .attr("xlink:href","img/pause.svg")
+      .attr("width", this.height/2)
+      .attr("height", this.height/2)
+      .attr("x", (-this.height/2 - margin.left))
+      .attr("y", this.height/2);
+
+    let _this = this;
+
+    this.pauseButton.on("click", function() { 
+      _this.playing = false;
+      _this.listener.buttonPressed(false);
+      _this.drawPlayButton();
+    });
   }
 
   setData(data) {
@@ -128,7 +180,7 @@ class StreamGraph {
     this.datearray = [];
 
     this.stack = d3.stack()
-      .keys(["Europe","North America","South America", "Central America", "Asia","Oceania"])
+      .keys(["Europe","North America","Latin America"/*"South America", "Central America"*/, "Asia & Oceania"/* "Asia","Oceania"*/])
       .order(d3.stackOrderNone)
       //.offset(d3.stackOffsetSilhouette);
       .offset(d3.stackOffsetNone);
@@ -266,7 +318,7 @@ class StreamGraph {
 
   setTimeStamp(week) {
     this.week = week;
-    this.resize(this.width, this.height);
+    this.drawTimeLine();
   }
 
   resize(width, height) {
@@ -315,18 +367,8 @@ class StreamGraph {
     this.streamGraph.selectAll(".layer")
       .attr("d", this.area);
 
-    this.streamGraph.select(".timeline").remove()
-    
-    if(this.week) {
 
-      this.streamGraph.append("rect")
-        .attr("class", "timeline")
-        .attr("x", this.x(this.data[this.week].date))
-        .attr("y", -10)
-        .attr("width", 2)
-        .attr("height", this.height)
-        .attr("fill", "#ffffff");
-    }
+    this.drawTimeLine();
 
     this.axishandler.selectAll(".xAxis").remove()
     this.axishandler.selectAll(".yAxis").remove()
@@ -355,6 +397,45 @@ class StreamGraph {
 
     this.axishandler.select(".yaxis")
       .call(yAxis); 
+
+    if(this.playing) {
+      this.drawPauseButton();
+    } else {
+      this.drawPlayButton();
+    }
   }
+
+  drawTimeLine() {
+    this.streamGraph.select(".timeline").remove()
+    
+    if(this.week) {
+
+      if(this.week >= this.data.length - 1) {
+        this.week = this.data.length - 1;
+      }
+
+      let date1 = this.data[Math.floor(this.week)].date
+      let date2 = this.data[Math.ceil(this.week)].date
+
+      let dateRate = this.week - Math.floor(this.week);
+
+      let date = new Date(date1.getTime() + dateRate * (date2.getTime() - date1.getTime()))
+
+      this.streamGraph.append("rect")
+        .attr("class", "timeline")
+        .attr("x", this.x(date))
+        .attr("y", -10)
+        .attr("width", 2)
+        .attr("height", this.height)
+        .attr("fill", "#ffffff");
+    }
+  }
+
+  pause() {
+    this.playing = false;
+    this.drawPlayButton();
+  }
+
+
 
 }

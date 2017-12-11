@@ -1,9 +1,9 @@
 class WorldMap {
 
+	constructor(width, height, svg, continentColorsDict, CountryContinentDict) {
 
-	constructor(width, height, svg) {
-	    this.height = height;
-	    this.width = width;
+    this.height = height;
+    this.width = width;
 
 
 		let scale = Math.min(width/7.2, height/4.6)
@@ -126,7 +126,7 @@ class WorldMap {
 	        }
 	        else {
 	          //return d3.color("#6AE368")
-	          return d3.color(spotify_green)
+	          return d3.color(continentColorsDict[CountryContinentDict[d.alpha2]])
 	        }
 	      }
 	      else {
