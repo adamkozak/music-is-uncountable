@@ -1,3 +1,32 @@
+//dictionary representing which polygon of multipolygon coordinate countries represent them the best (e.g. metropolitan France)
+/*
+let dictPolygon = {
+  "fr": 9,
+  "no" : 20,
+  "ca" : 100,
+  "us" : 58,
+  "nz" : 8,
+  "es" : 11,
+  "pt" : 8 ,
+  "cl" : 30,
+  "au" : 38,
+  "nl" : 7,
+}
+*/
+
+let dictPolygon = {
+  "fr": 2,
+  "no" : 0,
+  "ca" : 10,
+  "us" : 5,
+  //"nz" : 0,
+  //"es" : 0,
+  //"pt" : 0,
+  "cl" : 1,
+  //"au" : 1,
+  //"nl" : 1,
+}
+
 class WorldMap {
 
 	constructor(width, height, svg, continentColorsDict, CountryContinentDict) {
@@ -134,5 +163,114 @@ class WorldMap {
 	      }
 	    })
 	}
+
+
+
+//---------------------------------------
+// Zoom when country selected in the list 
+		//Zooming function
+zoom(AlphA, countryButton) {
+	
+	/*
+	count_list.selectAll("li").style("color","inherit");
+	count_list.select("#"+AlphA).style("color", "DarkSeaGreen");
+	*/
+	
+	let country ;
+	console.log(countries)
+	countries.forEach((ctry) => {
+		if (ctry.alpha2 == AlphA) {
+			country = ctry;
+		} 
+	});
+
+	console.log(country)
+
+	
+	let final_country = country;
+	if (active.node() === countryButton) return this.reset(AlphA);
+		active.classed("active", false);
+		active = d3.select(countryButton).classed("active", true);
+			
+	
+	//if the country needs a modification for zooming 
+	if (AlphA in dictPolygon ) { 
+		//copy of the country dict
+		final_country = JSON.parse(JSON.stringify(country));
+		//select the polygon number that needs to be zoomed
+		let polNum = dictPolygon[AlphA];
+		//resets the country dict to only this polynom for the bounds
+
+		console.log(final_country.geometry)
+
+		let	pointsCountry = final_country.geometry.coordinates[polNum];
+		final_country.geometry.coordinates = pointsCountry;
+		final_country.geometry.type = "Polygon";
+	}
+
+
+	console.log(final_country)
+	
+			
+	let bounds = this.path.bounds(final_country)
+
+
+	let
+		xmin = bounds[0][0],
+		xmax = bounds[1][0],
+		ymin = bounds[0][1],
+		ymax = bounds[1][1],
+		dx = xmax - xmin,
+		dy = ymax - ymin,
+		x_mid = (xmin + xmax) / 2,
+		y_mid = (ymin + ymax) / 2;
+		
+		
+		let scale = 0.9 / Math.max(dx / width, dy / height),
+		translate = [width / 2 - scale * x_mid, height / 2 - scale * y_mid];
+		
+	  worldMap.map.transition()
+		  .duration(1000)
+		  .ease(d3.easeExp)
+		  .style("stroke-width", 1.5 / scale + "px")
+		  .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+
+
+	  //this.map.selectAll(".boundary").remove()
+
+	  let strokeWidth = (this.width/8000.0) 
+
+	  console.log(strokeWidth);
+	  this.map.selectAll(".boundary")
+	  	.transition()
+	    .duration(1000)
+	    .style("stroke-width", strokeWidth + "px")
+	}
+		 
+	// Function that resets the properties of the country and dezooms when re-clicked
+	reset(a) {
+
+		let strokeWidth = (this.width/2000.0) 
+
+	  console.log(strokeWidth);
+	  this.map.selectAll(".boundary")
+	  	.transition()
+	    .duration(1000)
+	    .style("stroke-width", strokeWidth + "px")
+	
+			active.classed("active", false);
+			active = d3.select(null);
+
+	  worldMap.map.transition()
+		  .duration(750)
+		  .style("stroke-width", "1.5px")
+		  .style("fill", "red")
+		  .attr("transform", "");
+	
+		
+		count_list.select("#"+a).style("color", "inherit");
+		  
+	}
+		
 
 }

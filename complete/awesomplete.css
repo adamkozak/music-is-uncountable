@@ -78,6 +78,11 @@
 		padding: .2em .5em;
 		cursor: pointer;
 	}
+
+	.awesomplete {
+		color: black;
+	}
+	
 	
 	.awesomplete > ul > li:hover {
 		background: hsl(200, 40%, 80%);
@@ -86,7 +91,7 @@
 	
 	.awesomplete > ul > li[aria-selected="true"] {
 		background: hsl(205, 40%, 40%);
-		color: white;
+		color: black;
 	}
 	
 		.awesomplete mark {
@@ -99,6 +104,6 @@
 		
 		.awesomplete li[aria-selected="true"] mark {
 			background: hsl(86, 100%, 21%);
-			color: inherit;
+			color: black;
 		}
 /*# sourceMappingURL=awesomplete.css.map */
