@@ -14,8 +14,8 @@
 .graticule {
   fill: none;
   stroke: #00707070;
-  stroke-width: .5px;
-  stroke-opacity: .5;
+  stroke-width: 0px;
+  stroke-opacity: 0;
 }
 
 .land {

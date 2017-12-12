@@ -246,6 +246,10 @@ div.tab button {
 	background-color: #ccc;
 }
 
+#btnCountries{
+  background-color: #eee;
+}
+
 /* Change background color of buttons on hover */
 div.tab button:hover {
     background-color: #ddd;
@@ -303,7 +307,7 @@ div.tab button.active {
 <!--<link href="https://fonts.googleapis.com/css?family=Indie+Flower" type="text/css" rel="stylesheet">-->
 <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 
-<link rel="stylesheet" type="text/css" href="music.css">
+<link rel="stylesheet" type="text/css" href="music.css?32423asd">
 <link rel="stylesheet" href="complete/awesomplete.css" />
 <script src="complete/awesomplete.js" async></script>
 
@@ -555,21 +559,21 @@ function linspace(start, end, n) {
 
 
 let getAllDocuments = function(collection, query, callback, documents, projection) {
-    //console.log(query)
-    //console.log(projection)
-    collection.find(query,{project: projection, limit:10000}).then(items => {
-      documents = documents.concat(items);
-      
-      if(items.length >= 10000) {
-        let last_id = documents[documents.length - 1]["_id"];
-        query["_id"] = {"$gt":last_id}
-        getAllDocuments(collection, query, callback, documents, projection);
-      }
-      else {
-        callback(documents);
-      }
-    })
-  }
+  //console.log(query)
+  //console.log(projection)
+  collection.find(query,{project: projection, limit:10000}).then(items => {
+    documents = documents.concat(items);
+    
+    if(items.length >= 10000) {
+      let last_id = documents[documents.length - 1]["_id"];
+      query["_id"] = {"$gt":last_id}
+      getAllDocuments(collection, query, callback, documents, projection);
+    }
+    else {
+      callback(documents);
+    }
+  })
+}
 
 
 let songListCallback = function(list) {
@@ -783,7 +787,7 @@ function setCountriesList() {
 // Creates the tabs and selections 
 function Open(evt, Selection) {
 	
-	d3.selectAll(".tablinks").style("background-color" , "inherit"); 
+	d3.selectAll(".tablinks").style("background-color" , "#eee"); 
 	d3.selectAll("#btn"+Selection).style("background-color" , "#ccc"); 
 	
 	// Declare all variables
@@ -1018,7 +1022,14 @@ function createToplist(toplistData){
           .on('mouseover', function(d) {     
             d3.select(".d3-tip").transition().style("opacity", "1");   
             tip.show(d);
-            let svg_radar2 = RadarChart(".radar", parseFeatures(features), radarChartOptions2);                    
+            console.log(d)                    
+            let radarCallback = function(features) {
+              console.log(features)
+              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+            }
+
+            getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})
+
           })
           .on('mouseout', function(d) {
             d3.select(".d3-tip").transition().duration(1000).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});

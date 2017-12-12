@@ -46,7 +46,7 @@ class WorldMap {
 		this.path = d3.geoPath()
 		    .projection(this.projection);
 
-		let graticule = d3.geoGraticule();
+		let graticule = d3.geoGraticule()
 
 		this.map = svg.append("g")
 
