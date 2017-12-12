@@ -145,9 +145,6 @@ div.tab button.active {
 }
 
 
-
-
-
 </style>
 
 <body style="margin: 0; background: #222222">
@@ -442,7 +439,6 @@ let getAllDocuments = function(collection, query, callback, documents, projectio
       
       if(items.length >= 10000) {
         let last_id = documents[documents.length - 1]["_id"];
-        console.log(last_id);
         query["_id"] = {"$gt":last_id}
         getAllDocuments(collection, query, callback, documents, projection);
       }
@@ -618,7 +614,6 @@ d3.json("world-110m.json", function(error, w) {
           }
         })
 
-        console.log(spotify_dict)
 
         worldMap.drawMap();
         setCountriesList();
@@ -710,14 +705,19 @@ function startSongTimeLapse(data, speed) {
       let countriesColors = {}
       for(let i = 0; i < spotify_countries.length; i++) {
         let region = spotify_countries[i];
-        if(region in data[week]) {
-          
-          let position = data[week][region].position;
-          /*let shade = (100 - position) * 255 / 99.0;
-          countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
+        if(data[week]) {
+          if(region in data[week]) {
+            
+            let position = data[week][region].position;
+            /*let shade = (100 - position) * 255 / 99.0;
+            countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
 
-          countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)
-          //countriesColors[region] = colorScale(position/100.0)
+            countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)
+            //countriesColors[region] = colorScale(position/100.0)
+          }
+        }
+        else {
+          stopSongTimeLapse();
         }
       }
       worldMap.drawMap(countriesColors, delta);
@@ -766,6 +766,7 @@ function redraw() {
   resize();
   if(streamGraph) {
     streamGraph.resize(width/2, height/6)
+    streamGraphTransition(0);
   }
 }
 
