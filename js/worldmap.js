@@ -129,7 +129,6 @@ class WorldMap {
 
 
 	  let strokeWidth = (width/2000.0) 
-	  console.log(strokeWidth);
 	  this.map.selectAll(".boundary")
 	    .style("stroke-width", strokeWidth + "px")
 
@@ -177,15 +176,11 @@ zoom(AlphA, countryButton) {
 	*/
 	
 	let country ;
-	console.log(countries)
 	countries.forEach((ctry) => {
 		if (ctry.alpha2 == AlphA) {
 			country = ctry;
 		} 
 	});
-
-	console.log(country)
-
 	
 	let final_country = country;
 	if (active.node() === countryButton) return this.reset(AlphA);
@@ -201,19 +196,13 @@ zoom(AlphA, countryButton) {
 		let polNum = dictPolygon[AlphA];
 		//resets the country dict to only this polynom for the bounds
 
-		console.log(final_country.geometry)
-
 		let	pointsCountry = final_country.geometry.coordinates[polNum];
 		final_country.geometry.coordinates = pointsCountry;
 		final_country.geometry.type = "Polygon";
 	}
 
-
-	console.log(final_country)
-	
 			
 	let bounds = this.path.bounds(final_country)
-
 
 	let
 		xmin = bounds[0][0],
@@ -240,7 +229,6 @@ zoom(AlphA, countryButton) {
 
 	  let strokeWidth = (this.width/8000.0) 
 
-	  console.log(strokeWidth);
 	  this.map.selectAll(".boundary")
 	  	.transition()
 	    .duration(1000)
@@ -252,7 +240,6 @@ zoom(AlphA, countryButton) {
 
 		let strokeWidth = (this.width/2000.0) 
 
-	  console.log(strokeWidth);
 	  this.map.selectAll(".boundary")
 	  	.transition()
 	    .duration(1000)
