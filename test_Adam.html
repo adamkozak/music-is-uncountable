@@ -6,10 +6,7 @@
   <title>Test test</title>
 </head>
 
-
 <style>
-
-
 :root {
     --main-row-size: 24;
     --main-font-size: 12;
@@ -230,78 +227,22 @@ text.axisLabel {
   fill: #262626 !important;
 }
 
-
-/* Style the buttons inside the tab */
-div.tab button {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    transition: 0.3s;
-}
-
-#btnSongs{
-	background-color: #ccc;
-}
-
-/* Change background color of buttons on hover */
-div.tab button:hover {
-    background-color: #ddd;
-}
-
-
-/* Create an active/current tablink class */
-div.tab button.active {
-    background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-	font-family : Indie Flower;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-	color: white;
-}
-
-
 </style>
 
 <body style="margin: 0; background: #222222">
   <div id="container" style="width:100%; margin: 0px;">                                   
     <div id="left" style="float:left; width:75%; margin: 0px;"> 
     </div>                     
-    <div id="right" style="float:right; width:25%; margin: 0px; height:100vh;"> 
-      	  
-		<div class="tab" style = "height:10vh;">
-		  <button id = "btnSongs" class="tablinks" onclick="Open(event, 'Songs')" style = "height:10vh; width: 50%;">Songs</button>
-		  <button id = "btnCountries" class="tablinks" onclick="Open(event, 'Countries')" style = "height:10vh; width: 50%;">Countries</button>
-		</div>
-
-		<div id="Songs" class="tabcontent" style = "height:90vh;">
-			<h3>Search and select a song !</h3>
-			<input id="song_input" hidden="true" class="awesomplete"/>
-			<button id="go_button" hidden="true">Show infos</button>
-			<p>  </p>
-		</div>
-
-		<div id="Countries" class="tabcontent" style = "height:90vh;">
-		  <h3>Select a country !</h3>
-		  <p></p> 
-		</div>
-				
-	</div>      
-	<div id="controls" ></div>	
+    <div id="right" style="float:right; width:25%; margin: 0px;"> 
+      <input id="song_input" hidden="true"/>
+      <button id="go_button" hidden="true">Show infos</button>
+      <div id="controls" />
+    </div>                   
   </div>   
-  
-
   
 </body>
 
-<!--<link href="https://fonts.googleapis.com/css?family=Indie+Flower" type="text/css" rel="stylesheet">-->
-<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+
 
 <link rel="stylesheet" type="text/css" href="music.css">
 <link rel="stylesheet" href="complete/awesomplete.css" />
@@ -313,119 +254,43 @@ div.tab button.active {
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
 <script src="utils.js"></script>
 <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
-<link rel="stylesheet" href="css/streamgraph.css"></script>
-<script src="js/streamgraph.js"></script>
-<link rel="stylesheet" href="css/ranklegend.css"></script>
-<script src="js/ranklegend.js"></script>
-<script src="js/worldmap.js"></script>
+<link rel="stylesheet" href="streamgraph.css"></script>
+<script src="streamgraph.js"></script>
 <!--<script src="stitch.js"></script>-->
 <script src="radarChart.js"></script>	
 <script src="tip.js"></script>
 <script>
 
 
-
-let timer;
+//-----------------------------------
 
 let leftDiv = document.getElementById("left");
 
 let width = leftDiv.clientWidth;
-let height = window.innerHeight ;
+let height = window.innerHeight - 10;
 
 /*
-map.append("use")
-    .attr("class", "fill")
-    .attr("xlink:href", "#sphere");*/
-/*
-map.append("rect")
-    .attr("width", "100%")
-    .attr("height", "100%")
-    .attr("fill", d3.color("#00FFFFFF"));*/
+let width = 1200,
+    height = 600;*/
 
+let projection = d3.geoMercator()
+    .scale(150)
+    .translate([width / 2 - 80, height / 2 + 0])
+    .precision(.1);
 
-let countryTooltip = d3.select("body").append("div") 
-    .attr("class", "tooltip")       
-    .style("opacity", 0);
+let path = d3.geoPath()
+    .projection(projection);
 
-let streamGraph;
-let timelapseData;
-
-
-const client = new stitch.StitchClient('dataviz-xeqhx');
-const db = client.service('mongodb', 'mongodb-atlas').db('music');
-
-
-const continents = ["Europe","North America","Latin America"/*"South America", "Central America"*/, "Asia & Oceania"/* "Asia","Oceania"*/]
-
-const NorthAmerica = ["us","ca"];
-const CentralAmerica = ["do","pa","mx","cr","gt","sv","hn"];
-const SouthAmerica = ["ar","br","ec","bo","uy","cl","py","pe","co"];
-const LatinAmerica = CentralAmerica.concat(SouthAmerica);
-const Asia = ["jp","ph","id","my","sg","hk","tw"];
-const Europe = ["se","hu","pl","be","gr","es","fi","at","ch","sk","gb","pt","is","de","fr","it","nl","cz","cy","dk","ie","ee","lt","no","tr","lv"];
-const Oceania = ["au","nz"];
-const AsiaOceania = Asia.concat(Oceania);
-
-const continentColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6"];
-const continentColorsDict = {
-  "Europe": continentColors[0],
-  "North America": continentColors[1],
-  "Latin America": continentColors[2],
-  "Asia & Oceania": continentColors[3]
-}
-
-
-let CountryContinentDict = {};
-for(let i = 0; i < NorthAmerica.length; i++) {
-  CountryContinentDict[NorthAmerica[i]] = "North America"
-}
-for(let i = 0; i < CentralAmerica.length; i++) {
-  CountryContinentDict[CentralAmerica[i]] = "Central America"
-}
-for(let i = 0; i < SouthAmerica.length; i++) {
-  CountryContinentDict[SouthAmerica[i]] = "South America"
-} 
-for(let i = 0; i < LatinAmerica.length; i++) {
-  CountryContinentDict[LatinAmerica[i]] = "Latin America"
-} 
-for(let i = 0; i < Europe.length; i++) {
-  CountryContinentDict[Europe[i]] = "Europe"
-}
-for(let i = 0; i < Asia.length; i++) {
-  CountryContinentDict[Asia[i]] = "Asia"
-}
-for(let i = 0; i < Oceania.length; i++) {
-  CountryContinentDict[Oceania[i]] = "Oceania"
-}
-for(let i = 0; i < AsiaOceania.length; i++) {
-  CountryContinentDict[AsiaOceania[i]] = "Asia & Oceania"
-}
-
-
-let colorScale = d3.scaleLinear()
-    .domain([0,1])
-    //.interpolate(d3.interpolateHcl)
-    .interpolate(d3.interpolateRgb)
-    .range([d3.rgb('#FF4444'), d3.rgb("#444444")]);
-
-let colorScales = {
-}
-
-for(let continent in continentColorsDict) {
-  colorScales[continent] =  d3.scaleLinear()
-                              .domain([0,0.2,1])
-                              //.interpolate(d3.interpolateHcl)
-                              .interpolate(d3.interpolateRgb)
-                              .range([d3.rgb(continentColorsDict[continent]), d3.interpolateRgb(d3.rgb(continentColorsDict[continent]),"#666666")(0.5), d3.rgb("#666666")]);
-}
-
+let graticule = d3.geoGraticule();
 
 let svg = d3.select("#left").append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
-let worldMap = new WorldMap(width * 0.8, height * 0.9, svg, continentColorsDict, CountryContinentDict);
+let map = svg.append("g")
+    .attr("width", width)
+    .attr("height", height);
 
 let rankPage = d3.select("#left").append("div")
     .attr("class", "table-container")
@@ -440,62 +305,67 @@ let rankPage = d3.select("#left").append("div")
     .style("width", width + "px")
     .style("height", height + "px");*/
 
+map.append("defs").append("path")
+    .datum({type: "Sphere"})
+    .attr("id", "sphere")
+    .attr("d", path);
 
 let navigationMap = true;
 
 let navigation = svg.append("image")
-    .attr("xlink:href","img/semi.svg")
-    .attr("width", width/15)
-    .attr("height", width/30)
+    .attr("xlink:href","img/arrow_circle.svg")
+    .attr("width", 60)
+    .attr("height", 60)
 
 navigation
   .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ")");
 
-function getNavigationTransform() {
-    if(navigationMap) {
-      return "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ") rotate(0)";
-    } else {
-      return "translate(" + ((width/2)+(navigation.node().getBoundingClientRect().width / 2)) + "," +  navigation.node().getBoundingClientRect().height + ") rotate(180)"
-    }
-}
-
 navigation.on("click", function() {
+    /*
 
-    if(navigationMap) { 
+    let countryRankingCallback = function(timeLine) {
+        console.log(JSON.stringify(timeLine))
+    }
 
-      navigationMap = false
+    let firstDate = new Date("2017-07-01T07:00:00.000Z");
+    let secDate = new Date("2017-07-08T07:00:00.000Z");
+
+    getAllDocuments(db.collection('entries'), {"r":"us", "d":{ $lt: secDate, $gte: firstDate }}, countryRankingCallback, [], {_id: 0, s: 1, n:1, a:1})
+    */
+
+
+    if(navigationMap) {
 
       navigation.transition()
-        .attr("transform", getNavigationTransform())
+        .attr("transform", "translate(" + ((width/2)+(navigation.node().getBoundingClientRect().width / 2)) + "," +  navigation.node().getBoundingClientRect().height + ") rotate(180)")
         .duration(1000) 
-        .delay(0)    
+        .delay(200)     
 
-      worldMap.map.transition()
+      map.transition()
         .attr("transform", "translate(0, " + (-height) + ")")
         .duration(1000) 
-        .delay(0)    
+        .delay(200)    
 
-        let streamGraph_height = 50;
+        let histogram_height = 50;
 
-        if(streamGraph) {
-            streamGraph_height = streamGraph.streamGraph.node().getBoundingClientRect().height;
+        if(histogram) {
+            histogram_height = histogram.node().getBoundingClientRect().height;
         }
 
       rankPage.transition()
-        .style("top", (navigation.node().getBoundingClientRect().height + streamGraph_height + 20) + "px")
+        .style("top", (navigation.node().getBoundingClientRect().height + histogram_height + 20) + "px")
         .duration(1000) 
-        .delay(0)    
+        .delay(200)    
 
+      navigationMap = false
     } 
     else {
-      navigationMap = true
-
       navigation.transition()        
-        .attr("transform", getNavigationTransform())
+        .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ") rotate(0)")
         .duration(1200) 
         .delay(0)   
 
-      worldMap.map.transition()
+      map.transition()
         .attr("transform", "translate(0, " + 0 + ")")
         .duration(1200) 
         .delay(0)     
@@ -504,28 +374,84 @@ navigation.on("click", function() {
         .style("top", (height + 10) + "px")
         .duration(1000) 
         .delay(0)   
+
+      navigationMap = true
     }
 
 
-    streamGraphTransition(1000);
+    histogramTransition();
   })
 
-function streamGraphTransition(delay) {
+function histogramTransition() {
 
-  if(streamGraph) {   
+  if(histogram) {   
     if(navigationMap) {
-      streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + ((width/2)-(streamGraph.streamGraph.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
-        .duration(delay) 
-        .delay(0)   
+      histogram.transition()
+        .attr("transform", "translate(" + ((width/2)-(histogram.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
+        .duration(1000) 
+        .delay(200)   
     }
-    else {      
-      streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + /*40*/(width-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
-        .duration(delay) 
-        .delay(0)   
+    else {   
+      if(histogram) {      
+        histogram.transition()
+          .attr("transform", "translate(" + (width-histogram.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
+          .duration(1200) 
+          .delay(0)     
+      }  
     }
   }
+}
+/*
+map.append("use")
+    .attr("class", "fill")
+    .attr("xlink:href", "#sphere");*/
+/*
+map.append("rect")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .attr("fill", d3.color("#00FFFFFF"));*/
+
+
+map.append("path")
+    .datum(graticule)
+    .attr("class", "graticule")
+    .attr("d", path);
+
+let div = d3.select("body").append("div") 
+    .attr("class", "tooltip")       
+    .style("opacity", 0);
+
+let histogram;
+
+
+const client = new stitch.StitchClient('dataviz-xeqhx');
+const db = client.service('mongodb', 'mongodb-atlas').db('music');
+
+const NorthAmerica = ["us","ca"];
+const CentralAmerica = ["do","pa","mx","cr","gt","sv","hn"];
+const SouthAmerica = ["ar","br","ec","bo","uy","cl","py","pe","co"];
+const Asia = ["jp","ph","id","my","sg","hk","tw"];
+const Europe = ["se","hu","pl","be","gr","es","fi","at","ch","sk","gb","pt","is","de","fr","it","nl","cz","cy","dk","ie","ee","lt","no","tr","lv"];
+const Oceania = ["au","nz"];
+
+let CountryContinentDict = {};
+for(let i = 0; i < NorthAmerica.length; i++) {
+  CountryContinentDict[NorthAmerica[i]] = "North America"
+}
+for(let i = 0; i < CentralAmerica.length; i++) {
+  CountryContinentDict[CentralAmerica[i]] = "Central America"
+}
+for(let i = 0; i < SouthAmerica.length; i++) {
+  CountryContinentDict[SouthAmerica[i]] = "South America"
+}
+for(let i = 0; i < Europe.length; i++) {
+  CountryContinentDict[Europe[i]] = "Europe"
+}
+for(let i = 0; i < Asia.length; i++) {
+  CountryContinentDict[Asia[i]] = "Asia"
+}
+for(let i = 0; i < Oceania.length; i++) {
+  CountryContinentDict[Oceania[i]] = "Oceania"
 }
 
 const lowestDate = new Date("2017-01-01T12:00:00.000Z");
@@ -535,24 +461,6 @@ let selectedSongID;
 let countries;
 let spotify_countries;
 let streamsDict = {};
-let spotify_dict;
-let world;
-
-function linspace(start, end, n) {
-    var out = [];
-    var delta = (end - start) / (n - 1);
-
-    var i = 0;
-    while(i < (n - 1)) {
-        out.push(start + (i * delta));
-        i++;
-    }
-
-    out.push(end);
-    return out;
-}
-
-
 
 let getAllDocuments = function(collection, query, callback, documents, projection) {
     //console.log(query)
@@ -562,6 +470,7 @@ let getAllDocuments = function(collection, query, callback, documents, projectio
       
       if(items.length >= 10000) {
         let last_id = documents[documents.length - 1]["_id"];
+        console.log(last_id);
         query["_id"] = {"$gt":last_id}
         getAllDocuments(collection, query, callback, documents, projection);
       }
@@ -587,11 +496,11 @@ let songListCallback = function(list) {
   new Awesomplete(input, {
     list: songsList, 
     replace: function(item) {
+      //console.log(item.value.id);
       selectedSongID = item.value.id;
       this.input.value = item.value.text;
     }
   });
-
 
   // Display the autocomplete input
   input.hidden = false;
@@ -600,7 +509,9 @@ let songListCallback = function(list) {
   button.hidden = false;
   button.onclick = function() {    
     if(selectedSongID && spotify_countries) {
+
       let songEntriesCallback = function(timeLine) {
+
         timeLine = timeLine.filter(x => x.r != 'global')
 
         spotify_countries.forEach(function(d, i) {
@@ -608,116 +519,88 @@ let songListCallback = function(list) {
           let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
               return a + v;
           }, 0)
+          //console.log(d)
           streamsDict[d] = aggregation;
+          //console.log(streamsDict);
         })
 
         data = timeLine.map(function(x) {
           let region = "Unknown"
           if(x.r in CountryContinentDict) {
-            continent = CountryContinentDict[x.r]
+            region = CountryContinentDict[x.r]
           }
           else {
             console.log("Problem with" + x.r)
           }
           return {
             "value": parseInt(x.s),
-            "continent": continent,
-            "region": x.r,
-            "position": x.p,
+            "key": region,
             "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
           }
         });
 
+        //console.log(data.map(d => d.date))
         
-        regionsArray = ["Europe","North America","Latin America"/*"South America", "Central America"*/, "Asia & Oceania"/*"Asia","Oceania"*/]
+        regionsArray = ["Europe","North America","South America", "Central America", "Asia","Oceania"]
         datesArray = [];
 
-        for(let i = 1; i < 34; i++) {
+        for(let i = 0; i < 34; i++) {
           let d = new Date(lowestDate.getTime());
           d.setDate(d.getDate() + i*7);
           datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
         }
 
-        timelapseData = []
+        fullData = []
         for(let j = 0; j < datesArray.length; j++) {
-          timelapseData.push({"date": datesArray[j]})
-        }
-
-        for(let i = 0; i < data.length; i++) {
-          let dateIdx = datesArray.indexOf(data[i].date)
-          if(dateIdx > -1) {
-            timelapseData[dateIdx][data[i].region] = data[i];
-          }
-        }
-
-        let streamData = []
-        for(let j = 0; j < datesArray.length; j++) {
-          streamData.push({"date": datesArray[j]})
+          fullData.push({"date": datesArray[j]})
           for(let i = 0; i < regionsArray.length; i++) {
-            streamData[j][regionsArray[i]] = 0
+            fullData[j][regionsArray[i]] = 0
           }
         }
 
         for(let i = 0; i < data.length; i++) {
           let dateIdx = datesArray.indexOf(data[i].date)
-          if(dateIdx > -1) {
-            let region = data[i].continent
-            streamData[dateIdx][region] += data[i].value
-          }
+          let region = data[i].key
+
+          fullData[dateIdx][region] += data[i].value
         }
 
         let format = d3.timeParse("%Y/%m/%d");
 
-        streamData.forEach(function(d) {
+        fullData.forEach(function(d) {
           d.date = format(d.date);
         });
 
-        if(streamGraph) {
-          streamGraph.setData(streamData);
-          //streamGraphTransition(1000);
-          //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
+        if(histogram) {
+          histogram = chart(fullData, "palette", svg, histogram);
         }
         else {
-          streamGraphListener = {
-            buttonPressed(playing) {
-              if(playing) {
-                startSongTimeLapse(timelapseData, 1);
-                console.log("Start timelapse")
-              } else {
-                stopSongTimeLapse();
-                console.log("Stop timelapse")
-              }
-            }
-          }
+          histogram = chart(fullData, "palette", svg, histogram);
 
-          streamGraph = new StreamGraph(width, height/6, streamData, svg, streamGraphListener, continentColors, null)
-          streamGraph.streamGraph 
-            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+          histogram
+          .attr("transform", "translate(" + (-histogram.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - histogram.node().getBoundingClientRect().height) + ")")
 
-          streamGraphTransition(1000);
-
+          histogramTransition();
         }
 
-        let legend = setRankLegend(width/30, height/2, colorScales, svg);
-        legend
-          .attr("transform", "translate(" + 10 + ", " + (height/2 - legend.node().getBoundingClientRect().height/2) + ")")
+        console.log(histogram)
 
-        //resize();
       }
 
-      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
+      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1})
     }
   }
 }
 
 client.login().then(() => getAllDocuments(db.collection('songs'), {}, songListCallback, [], {_id: 0, id: 1, "Track Name": 1, "Artist": 1}))
 
+d3.json("world-50m.json", function(error, world) {
 
-d3.json("world-110m.json", function(error, w) {
   if (error) throw error;
-  world = w;
-  countries = topojson.feature(world, world.objects.countries).features
-  //let neighbors = topojson.neighbors(world.objects.countries.geometries)
+
+  countries = topojson.feature(world, world.objects.countries).features, neighbors = topojson.neighbors(world.objects.countries.geometries);
+  console.log(countries);
+  
   d3.json("id_dict.json", function(error, dict) {
     countries.forEach(function(d, i) {
       if(dict["" + parseInt(d.id)]) {
@@ -725,183 +608,108 @@ d3.json("world-110m.json", function(error, w) {
         d.alpha2 = dict[d.id][0]
       }
     })
-    countries = countries.filter(d => d.alpha2 != "aq")
+
     d3.json("Datasets/countries.json", function(error, c) {
         spotify_countries = c;
-        spotify_dict = {}
+        let spotify_dict = {}
         spotify_countries.forEach(function(d, i) {
-          for(let i = 0; i < countries.length; i++) {
-            if(d == countries[i].alpha2) {
-              spotify_dict[d] = countries[i]
-            }
-          }
+          spotify_dict[d] = d
         })
 
+        //console.log(spotify_dict)
 
-        worldMap.drawMap();
-        setCountriesList();
+        countries = countries.filter(d => d.alpha2 != "aq")
+
+        map.selectAll(".country")
+          .data(countries)
+          .enter().insert("path", ".graticule")
+          .attr("class", "country")
+          .attr("d", path)
+          //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
+          .style("fill", function(d, i) { 
+            if(d.alpha2 in spotify_dict) {
+              //return d3.color("#6AE368")
+              return d3.color("#81b71a")
+            }
+            else {
+              return d3.color("#828282")
+            }
+          })
+
+          .on("mouseover", function(d) {    
+              div.transition()    
+                  .duration(200)    
+                  .style("opacity", 1);    
+              })    
+
+          .on("mousemove", function(d) {
+              if(d.name) {
+                if(streamsDict[d.alpha2] !== undefined) {
+                  div .html(d.name + "<br>Yearly Streams: " + streamsDict[d.alpha2])  
+                      .style("left", (d3.event.pageX) + "px")   
+                      .style("top", (d3.event.pageY - 28) + "px");  
+                }
+                else {
+                  div .html(d.name)  
+                      .style("left", (d3.event.pageX) + "px")   
+                      .style("top", (d3.event.pageY - 28) + "px");  
+                }
+              }
+              else {
+                div .html(d.id)  
+                    .style("left", (d3.event.pageX) + "px")   
+                    .style("top", (d3.event.pageY - 28) + "px");  
+              }
+          })
+          .on("mouseout", function(d) {   
+              div.transition()    
+                  .duration(500)    
+                  .style("opacity", 0); 
+          })
+          /*
+          .on("click", function(d) {
+
+            svg.insert("path", ".graticule")
+              .datum(topojson.mesh(world, world.objects.countries, function(a, b) { 
+                return (a.id == d.id || b.id == d.id)}))
+              .attr("class", "selectedBoundary")
+              .attr("d", path);
+          });*/
+
+          // Draw the boundaries
+          map.insert("path", ".graticule")
+            .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+            .attr("class", "boundary")
+            .attr("d", path);
+
     });
+
   });
+  
+
 });
 
-let active = d3.select(null);  
-let count_par;
-let count_list;
-
-function setCountriesList() {
-  
-  count_par = d3.select("#Countries").select('p');
-  count_list = count_par.append("ul");
-
-  for (i in spotify_dict){
-    count_list.append("li").attr("class","country_list").attr("id", i)
-    .text(spotify_dict[i].name);
-  };
-
-
-  d3.select("#Countries").style("overflow","scroll");
-
-  // 
-
-  let songs_par = d3.select("#Songs").select('p');
-  let songs_list = songs_par.append("ul"); 
-      
-      
-  Object.keys(spotify_dict).forEach(function(AlphA){
-  count_list.select("#"+AlphA)
-    .on("mouseover", function() { d3.select("#"+AlphA).style("font-weight", "bold")})
-    .on("mouseout", function() { d3.select("#"+AlphA).style("font-weight", "inherit")})
-    .on("click", function() {
-      let AlphA = d3.select(this).attr('id');
-      worldMap.zoom(AlphA, this);
-    });
-  });
-  
-}
-
-// Nathalie's code -----------------------------------
-// Creates the tabs and selections 
-function Open(evt, Selection) {
-	
-	d3.selectAll(".tablinks").style("background-color" , "inherit"); 
-	d3.selectAll("#btn"+Selection).style("background-color" , "#ccc"); 
-	
-	// Declare all variables
-    let i, tabcontent, tablinks;
-	
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(Selection).style.display = "block";
-    evt.currentTarget.className += " active";
-}
-
-//End of Nathalie's code----------------------------------------------------------------------------
-
-function startSongTimeLapse(data, speed) {
-
-  let delta = 1000;
-  if(speed) {
-    delta = 1000 / speed;
-  }
-
-  let it = 0;
-  let week = 0;
-
-  if(data[week] == undefined) {
-    console.log(data)
-  }
-
-  timer = setInterval(function() {
-    streamGraph.setTimeStamp(it/10.0);
-    if(it%10 == 0) {
-      let countriesColors = {}
-      for(let i = 0; i < spotify_countries.length; i++) {
-        let region = spotify_countries[i];
-        if(data[week]) {
-          if(region in data[week]) {
-            
-            let position = data[week][region].position;
-            /*let shade = (100 - position) * 255 / 99.0;
-            countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
-
-            countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)
-            //countriesColors[region] = colorScale(position/100.0)
+  function reporter(x) {
+      //console.log(x.name)
+      d3.select("#report").text(function() {
+          if(x.name) {
+            return (x.name);
           }
-        }
-        else {
-          stopSongTimeLapse();
-        }
-      }
-      worldMap.drawMap(countriesColors, delta);
-
-      week += 1;
-      if(week == data.length) {
-        streamGraph.pause();
-        stopSongTimeLapse();
-      }
-    }
-    it++;
-  }, delta/10);
-  playing = true;
-}
-
-function stopSongTimeLapse() {
-  clearInterval(timer);
-  playing = false;
-}
-
-function resize() {
-  width = leftDiv.clientWidth;
-  height = window.innerHeight ;
-
-  navigation
-    .attr("width", width/15)
-    .attr("height", width/30)
-    .attr("transform", getNavigationTransform());
-
-
-  d3.select("svg")
-    .attr("width", width)
-    .attr("height", height)
-
-  worldMap.resize(width, height)
-
-  if(streamGraph) {
-    //streamGraph.resize(width/2, height/6)
-    streamGraphTransition(0);
-
+          return (x.id);
+      });
   }
-}
 
-function redraw() {
-  console.log("Redraw")
-  resize();
-  if(streamGraph) {
-    streamGraph.resize(width/2, height/6)
-    streamGraphTransition(0);
-  }
-}
-
-window.addEventListener("resize", redraw);
 
 d3.select(self.frameElement).style("height", height + "px");
+
+
+//-----------------------------TOPLIST------------------------------------------
+
+// VARIABLES
 
 let style = getComputedStyle(document.body);
 let row_size = +style.getPropertyValue('--main-row-size') + 4;
 let data_row_size = row_size - 2;
-
-let spotify_green = style.getPropertyValue('--main-spotify-green');
 let triangle_width = 13;
 let triangle_height = 13;
 let indexx = 1;
@@ -1282,7 +1090,6 @@ d3.select("#controls").insert("button", ".table").on("click", transformData).htm
 var margin_radar = { top: 30, right: 40, bottom: 30, left: 40 },
 width_radar = +style.getPropertyValue('--tooltip-song-size') + 60 - margin_radar.left - margin_radar.right,
 height_radar = +style.getPropertyValue('--tooltip-song-size') - margin_radar.top - margin_radar.bottom;
-redraw();
 
 //////////////////////////////////////////////////////////////
 ////////////////////////// Data //////////////////////////////
