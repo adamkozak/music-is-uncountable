@@ -70,6 +70,29 @@ div[cell_type="p"] {
     margin-left: 5px; 
     display: flex;    
 }
+div[cell_type="position"] {
+/*     display: inline-block; */ 
+    color: rgb(188, 188, 188);
+    left: 0%;
+    width: 35px;
+    text-align: right;
+    margin-left: 5px; 
+    display: flex;    
+}
+
+
+div[cell_type="country"] {
+    color: rgb(188, 188, 188);
+    left: 10%;
+    width: calc(40% - 5px);
+}
+
+
+div[cell_type="value"] {
+    color: rgb(188, 188, 188);
+    right: 0;
+    width: 100px;
+}
 
 div[cell_type="n"] {
     color: rgb(188, 188, 188);
@@ -112,6 +135,15 @@ div.header[cell_type="p"] {
   margin-left: 5px;
   width: 10%;
 }
+
+div.header[cell_type="position"] {
+  position: absolute;
+  padding: 0 0px;
+  overflow: hidden;
+  margin-left: 5px;
+  width: 10%;
+}
+
 
 image {
 /*   z-index: 999;
@@ -686,8 +718,12 @@ let songListCallback = function(list) {
           streamGraphListener = {
             buttonPressed(playing) {
               if(playing) {
-                console.log(JSON.stringify(timelapseData))
-                startSongTimeLapse(timelapseData, 1);
+                //console.log(JSON.stringify(timelapseData))
+
+                let topListData = getSongTopListData(timelapseData[0]);
+                createToplist(topListData, {"position": "#","country": "Country", "value": "Streams"}, ({position, country, value}) => ({position, country, value}), "value")
+
+                startSongTimeLapse(timelapseData, 0.2);
                 console.log("Start timelapse")
               } else {
                 stopSongTimeLapse();
@@ -842,6 +878,11 @@ function startSongTimeLapse(data, speed) {
             countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
 
             countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)
+
+
+            let topListData = getSongTopListData(data[week]);
+
+            updateToplist(topListData, {"position": "#","country": "Country", "value": "Streams"}, ({position, country, value}) => ({position, country, value}), "value");
             //countriesColors[region] = colorScale(position/100.0)
           }
         }
@@ -933,12 +974,13 @@ let tip = d3.tip().attr('class', 'd3-tip').offset([20, 30]).html("<div class='ra
 // Create a local variable for storing previous data.
 let previousData = d3.local();
 
+/*
 d3.json("./jsonsamples/us_with_id.json", function(error, data) {
 
-    console.log(data);
+    //console.log(data);
     testDataset = data;
     createToplist(data, {"p": "#","n": "Title", "a": "Artist", "s": "Streams"}, ({p, n, a, s}) => ({p, n, a, s}), "s");
-});
+});*/
 
 
 // Fake data
@@ -975,13 +1017,15 @@ let tweets3 = {
 // toplistData - list of json-like elements
 function createToplist(toplistData, keys, filter, sortBy){  
 
+  d3.select(".table").remove();
+
     toplistData = toplistData.sort(function(a, b){
         if(+a[sortBy] < +b[sortBy]) return 1;
         if(+a[sortBy] > +b[sortBy]) return -1;
         return 0;
     });
 
-    console.log(JSON.stringify(toplistData));
+    //console.log(JSON.stringify(toplistData));
 
     var keyValues = d3.keys(toplistData[0]);
     //let keys = {"p": "#","n": "Title", "a": "Artist", "s": "Streams"};
@@ -1035,7 +1079,7 @@ function createToplist(toplistData, keys, filter, sortBy){
             d3.select(".d3-tip").transition().style("opacity", "1");   
             tip.show(d);             
             let radarCallback = function(features) {
-              console.log(features)
+              //console.log(features)
               let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
             }
 
@@ -1120,179 +1164,203 @@ function transformData() {
 
 
     updateToplist(tweets2.tweets, {"p": "#","n": "Title", "a": "Artist", "s": "Streams"}, ({p, n, a, s}) => ({p, n, a, s}), "s");
+}
 
-    function updateToplist(newToplist, keys, filter, sortBy){ 
+function getSongTopListData(weekData) {
+  let topListData = [];
+  for(key in weekData) {
+    if(key != "date") {
+      topListData.push(weekData[key])
+    }
+  }
 
-        newToplist = newToplist.sort(function(a, b){
-          if(+a[sortBy] < +b[sortBy]) return 1;
-          if(+a[sortBy] > +b[sortBy]) return -1;
-          return 0;
-        });
+  console.log(topListData);
+
+  topListData.forEach(x => {
+    if(spotify_dict[x.region]) {
+      console.log(x)
+      x["country"] = spotify_dict[x.region].name;
+      x["id"] = spotify_dict[x.region].id;
+    } else {
+      console.log("Problem with " + x.region)
+    }
+  });
+
+  return topListData;
+}
+
+function updateToplist(newToplist, keys, filter, sortBy){ 
+
+    newToplist = newToplist.sort(function(a, b){
+      if(+a[sortBy] < +b[sortBy]) return 1;
+      if(+a[sortBy] > +b[sortBy]) return -1;
+      return 0;
+    });
 
 
-        console.log(newToplist);
+    //console.log(newToplist);
 
-        // Update those that are in the table
-        let rows = d3.select("div.table")
-            .selectAll("div.datarow")
-            .data(newToplist, (d) => {return d.id;})
-            .call(savePreviousData)
-            .attr("is_new", "update");
-        
-        let cells = rows.selectAll("div.data")
-            .data((d) => {return d3.entries(filter(d));})
-            .html((d) => {return d.value;})
-            .attr("is_new", "update");
+    // Update those that are in the table
+    let rows = d3.select("div.table")
+        .selectAll("div.datarow")
+        .data(newToplist, (d) => {return d.id;})
+        .call(savePreviousData)
+        .attr("is_new", "update");
+    
+    let cells = rows.selectAll("div.data")
+        .data((d) => {return d3.entries(filter(d));})
+        .html((d) => {return d.value;})
+        .attr("is_new", "update");
 
-        rows.transition("sorting")
-            .delay((d) => {return 100 + (d.p/newToplist.length) * 2000;})
-            .duration(2000)
-            .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";})
-            .on("start", addTriangle);
+    rows.transition("sorting")
+        .delay((d, i) => {return 100 + (i/newToplist.length) * 2000;})
+        .duration(2000)
+        .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";})
+        .on("start", addTriangle);
 
-        // Add new ones
-        let enterRows = rows.enter()
-            .append("div")
-            .attr("class", "datarow")
-            .attr("id", function(d) { return uniqueID++; })
-            .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";})
-            .style("opacity", 0.0)
-            .style("left", "-600px")
-            .style("height", data_row_size + "px")
-            .attr("is_new", "enter");
-            //.on("click", showDetails);
-
-        let enter_info = enterRows
+    // Add new ones
+    let enterRows = rows.enter()
         .append("div")
-        .attr("class", "info")
+        .attr("class", "datarow")
+        .attr("id", function(d) { return uniqueID++; })
+        .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";})
+        .style("opacity", 0.0)
+        .style("left", "-600px")
         .style("height", data_row_size + "px")
-        .style("width", data_row_size + "px")
-      .append("svg")
-        .attr("width", 24 + "px")
-        .attr("height", 24 + "px")
-      .append("image")
-        .attr("xlink:href","img/info_icon.png")
-        .attr("width", 24 + "px")
-        .attr("height", 24 + "px")
-        .on('mouseover', function(d) {     
-            d3.select(".d3-tip").transition().style("opacity", "1");   
-            tip.show(d);
-            let radarCallback = function(features) {
-              console.log(features)
-              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
-            }
+        .attr("is_new", "enter");
+        //.on("click", showDetails);
 
-            getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})                   
-          })
-          .on('mouseout', function(d) {
-            d3.select(".d3-tip").transition().duration(1000).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
-            
-          });
-          /* .on("mouseover", function(d) {		
-              div_toplist.transition()		
-                  .duration(200)		
-                  .style("opacity", .9);		
-              div_toplist	
-                  .style("left", (d3.event.pageX + 10) + "px")		
-                  .style("top", (d3.event.pageY - 10) + "px");
+    let enter_info = enterRows
+    .append("div")
+    .attr("class", "info")
+    .style("height", data_row_size + "px")
+    .style("width", data_row_size + "px")
+  .append("svg")
+    .attr("width", 24 + "px")
+    .attr("height", 24 + "px")
+  .append("image")
+    .attr("xlink:href","img/info_icon.png")
+    .attr("width", 24 + "px")
+    .attr("height", 24 + "px")
+    .on('mouseover', function(d) {     
+        d3.select(".d3-tip").transition().style("opacity", "1");   
+        tip.show(d);
+        let radarCallback = function(features) {
+          //console.log(features)
+          let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+        }
 
-              let svg_radar2 = RadarChart(".song_tooltip", data_radar, radarChartOptions2);
-            })					
-          .on("mouseout", function(d) {		
-              div_toplist.transition()		
-                  .duration(500)		
-                  .style("opacity", 0);}) */
-          enter_info.call(tip);
+        getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})                   
+      })
+      .on('mouseout', function(d) {
+        d3.select(".d3-tip").transition().duration(1000).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
+        
+      });
+      /* .on("mouseover", function(d) {		
+          div_toplist.transition()		
+              .duration(200)		
+              .style("opacity", .9);		
+          div_toplist	
+              .style("left", (d3.event.pageX + 10) + "px")		
+              .style("top", (d3.event.pageY - 10) + "px");
 
-    /* d3.select(".d3-tip")
-        .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
-        .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
-            .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); }); */
+          let svg_radar2 = RadarChart(".song_tooltip", data_radar, radarChartOptions2);
+        })					
+      .on("mouseout", function(d) {		
+          div_toplist.transition()		
+              .duration(500)		
+              .style("opacity", 0);}) */
+      enter_info.call(tip);
+
+/* d3.select(".d3-tip")
+    .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
+    .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
+        .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); }); */
 
 /*         .on("mouseover", function(d) {		
-            div_toplist.transition()		
-                .duration(200)		
-                .style("opacity", .9);		
-            div_toplist.html(d.id)	
-                .style("left", (d3.event.pageX + 10) + "px")		
-                .style("top", (d3.event.pageY - 10) + "px");	
-            console.log(d.id);
-            })					
-        .on("mouseout", function(d) {		
-            div_toplist.transition()		
-                .duration(500)		
-                .style("opacity", 0);	
-      }); */
+        div_toplist.transition()		
+            .duration(200)		
+            .style("opacity", .9);		
+        div_toplist.html(d.id)	
+            .style("left", (d3.event.pageX + 10) + "px")		
+            .style("top", (d3.event.pageY - 10) + "px");	
+        console.log(d.id);
+        })					
+    .on("mouseout", function(d) {		
+        div_toplist.transition()		
+            .duration(500)		
+            .style("opacity", 0);	
+  }); */
 
-        let enterCells = enterRows.selectAll("div.data")
-            .data((d) => {return d3.entries(filter(d));})
-            .enter()
-            .append("div")
-            .attr("class", "data")
-            .attr("cell_type", (d) => {return d.key;})
-            .html((d) => {return d.value;});
-        
-        enterRows.transition("new_rows")
-            .ease(d3.easeQuad)
-            .delay(3100)
+    let enterCells = enterRows.selectAll("div.data")
+        .data((d) => {return d3.entries(filter(d));})
+        .enter()
+        .append("div")
+        .attr("class", "data")
+        .attr("cell_type", (d) => {return d.key;})
+        .html((d) => {return d.value;});
+    
+    enterRows.transition("new_rows")
+        .ease(d3.easeQuad)
+        .delay(3100)
+        .duration(1000)
+        .style('opacity', 1.0)
+        .style("left", "0px");
+
+    rows.exit()
+        .attr('is_new', 'exit')
+        .transition("exit_rows")
+        .ease(d3.easeQuad) //"quad" d3.v3
+        .delay(0)
+        .duration(1000)
+        .style('opacity', 0.0)
+        .style("left", "600px")
+        .remove();
+}                   
+function addTriangle() {
+    //let inner_data = d3.select(this).selectAll("[cell_type = p]").data();
+    //console.log(inner_data[0]);
+
+    d3.select(this).selectAll("[cell_type = p]")
+        .append('svg')
+        .attr("class", "triangle")
+        .attr("height", triangle_height + "px")
+        .attr("width", triangle_width + "px")
+        .style("right", 0 + 'px')
+            .append('polygon')
+            .attr('points', function(d) {
+                console.log(+previousData.get(this));
+                console.log(+d.value);                    
+                var diff = +previousData.get(this) - d.value;  // Retrieve previously stored data.               
+                return diff < 0 ? "0,0 " + triangle_width + ",0 " + triangle_width/2 +"," + triangle_height + " 0,0" : 
+                        diff > 0 ? "0," + triangle_height +" " + triangle_height+","+triangle_width+" "+triangle_width/2+",0 0,"+triangle_height :
+                        "0," + triangle_height/2 + " " + triangle_width+","+triangle_width/2+" 0," + triangle_width/2;
+                })
+            .style("fill" ,function(d) {
+                var diff = +previousData.get(this) - d.value; 
+                return diff < 0 ? "red" : diff > 0 ? "green" : "black";
+                })
+            .style("stroke" ,function(d) {
+                var diff = +previousData.get(this) - d.value; 
+                return diff === 0 ? "black" : "";
+                })
+            .style("opacity", 0)
+            .transition()
             .duration(1000)
-            .style('opacity', 1.0)
-            .style("left", "0px");
-
-        rows.exit()
-            .attr('is_new', 'exit')
-            .transition("exit_rows")
-            .ease(d3.easeQuad) //"quad" d3.v3
-            .delay(0)
-            .duration(1000)
-            .style('opacity', 0.0)
-            .style("left", "600px")
-            .remove();
-    }                   
-    function addTriangle() {
-        //let inner_data = d3.select(this).selectAll("[cell_type = p]").data();
-        //console.log(inner_data[0]);
-
-        d3.select(this).selectAll("[cell_type = p]")
-            .append('svg')
-            .attr("class", "triangle")
-            .attr("height", triangle_height + "px")
-            .attr("width", triangle_width + "px")
-            .style("right", 0 + 'px')
-                .append('polygon')
-                .attr('points', function(d) {
-                    console.log(+previousData.get(this));
-                    console.log(+d.value);                    
-                    var diff = +previousData.get(this) - d.value;  // Retrieve previously stored data.               
-                    return diff < 0 ? "0,0 " + triangle_width + ",0 " + triangle_width/2 +"," + triangle_height + " 0,0" : 
-                            diff > 0 ? "0," + triangle_height +" " + triangle_height+","+triangle_width+" "+triangle_width/2+",0 0,"+triangle_height :
-                            "0," + triangle_height/2 + " " + triangle_width+","+triangle_width/2+" 0," + triangle_width/2;
-                    })
-                .style("fill" ,function(d) {
-                    var diff = +previousData.get(this) - d.value; 
-                    return diff < 0 ? "red" : diff > 0 ? "green" : "black";
-                    })
-                .style("stroke" ,function(d) {
-                    var diff = +previousData.get(this) - d.value; 
-                    return diff === 0 ? "black" : "";
-                    })
-                .style("opacity", 0)
-                .transition()
-                .duration(1000)
-                .ease(d3.easeLinear)
-                .style("opacity", 1);
-    }
-    function savePreviousData() {
-        d3.selectAll("[cell_type = p]").each(function(d) { console.log(this); previousData.set(this, d.value) });
-    }
-    function shuffle(a) {
-        for (let i = a.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [a[i], a[j]] = [a[j], a[i]];
-        }
-        return a;
-    }
+            .ease(d3.easeLinear)
+            .style("opacity", 1);
 }
+function savePreviousData() {
+    d3.selectAll("[cell_type = p]").each(function(d) { console.log(this); previousData.set(this, d.value) });
+}
+function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 
 function showDetails()
 {
