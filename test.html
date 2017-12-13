@@ -38,7 +38,7 @@ div.data {
 
 div.headers {
   position: absolute;
-  width: calc(74vw - 12px);
+  width: calc(29vw - 12px);
   border: 2px rgba(75, 75, 75, 0.5);
   border-style: solid;
   border-radius: 5px;
@@ -47,7 +47,7 @@ div.headers {
 
 div.datarow {
   position: absolute;
-  width: calc(74vw - 12px);
+  width: calc(29vw - 12px);
   border: 1px rgba(0, 0, 0, 0.51) solid;
   border-radius: 5px;
   background: rgba(126, 126, 126, 0.5);
@@ -57,8 +57,9 @@ div.datarow {
 
 div.table-container {
     position: absolute;
-    overflow: scroll;
-    width: 75vw;
+    /*overflow: scroll;*/
+    overflow: hidden;
+    width: 30vw;
 }
 
 div[cell_type="p"] {
@@ -73,25 +74,25 @@ div[cell_type="p"] {
 div[cell_type="position"] {
 /*     display: inline-block; */ 
     color: rgb(188, 188, 188);
-    left: 0%;
-    width: 35px;
-    text-align: right;
-    margin-left: 5px; 
-    display: flex;    
+    right: 0px;
+    width: 120px;
+    text-align: left;
+    margin-left: 0px; 
 }
 
 
 div[cell_type="country"] {
     color: rgb(188, 188, 188);
-    left: 10%;
-    width: calc(40% - 5px);
+    left: 0%;
+    width: calc(50% - 5px);
+    margin-left: 5px;
 }
 
 
-div[cell_type="value"] {
+div[cell_type="formatted_streams"] {
     color: rgb(188, 188, 188);
-    right: 0;
     width: 100px;
+    left: 40%;
 }
 
 div[cell_type="n"] {
@@ -140,8 +141,10 @@ div.header[cell_type="position"] {
   position: absolute;
   padding: 0 0px;
   overflow: hidden;
-  margin-left: 5px;
-  width: 10%;
+  margin-left: 0px; 
+  width: 120px;    
+  right: 0px;    
+  text-align: left;
 }
 
 
@@ -157,7 +160,7 @@ div[is_new="enter"] {
 div.table {
   position:relative;
   left: 0px;
-  width: calc(75vw - 12px);
+  width: calc(30vw - 12px);
 }
 
 svg.triangle {
@@ -296,51 +299,67 @@ div.tab button.active {
 
 /* Style the tab content */
 .tabcontent {
-	font-family : Indie Flower;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-	color: white;
+  font-family: 'Titillium Web', sans-serif;
+	/*font-family : Roboto;*/
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+  color: #626262;
+	/*color: white;*/
 }
 
+.container {
+  overflow: hidden;
+}
+.container > div[class^="column"] {
+  border-left: 2px solid #C2C7C9;
+  border-right: 2px solid #C2C7C9;
+}
+.container div[class^="column"]:first-child {
+  border-left: none;
+}
+.container div[class^="column"]:last-child {
+  border-right: none;
+}
 
 </style>
 
 <body style="margin: 0; background: #222222">
-  <div id="container" style="width:100%; margin: 0px;">                                   
-    <div id="left" style="float:left; width:75%; margin: 0px;"> 
+  <nav class="main-menu" style="width: 300px; right:0;">
+    <div class="menu-content">
+      <div class="tab" style = "height:10vh;">
+        <button id = "btnSongs" class="tablinks" onclick="Open(event, 'Songs')" style = "height:10vh; width: 50%;">Songs</button>
+        <button id = "btnCountries" class="tablinks" onclick="Open(event, 'Countries')" style = "height:10vh; width: 50%;">Countries</button>
+      </div>
+
+      <div id="Songs" class="tabcontent" style = "height:90vh;">
+        <h3>Search and select a song !</h3>
+        <input id="song_input" hidden="true" class="awesomplete"/>
+        <button id="go_button" hidden="true">Show infos</button>
+        <p>  </p>
+      </div>
+
+      <div id="Countries" class="tabcontent" style = "height:90vh;">
+        <h3>Select a country !</h3>
+        <p></p> 
+      </div>
+    </div>
+  </nav>
+
+  <div id="container" class="container" style="width:100%; margin: 0px;">                                   
+    <div id="left" class="column" style="float:left; width:65vw; margin: 0px; height:100vh;"> 
     </div>                     
-    <div id="right" style="float:right; width:25%; margin: 0px; height:100vh;"> 
-      	  
-		<div class="tab" style = "height:10vh;">
-		  <button id = "btnSongs" class="tablinks" onclick="Open(event, 'Songs')" style = "height:10vh; width: 50%;">Songs</button>
-		  <button id = "btnCountries" class="tablinks" onclick="Open(event, 'Countries')" style = "height:10vh; width: 50%;">Countries</button>
-		</div>
-
-		<div id="Songs" class="tabcontent" style = "height:90vh;">
-			<h3>Search and select a song !</h3>
-			<input id="song_input" hidden="true" class="awesomplete"/>
-			<button id="go_button" hidden="true">Show infos</button>
-			<p>  </p>
-		</div>
-
-		<div id="Countries" class="tabcontent" style = "height:90vh;">
-		  <h3>Select a country !</h3>
-		  <p></p> 
-		</div>
-				
-	</div>      
-	<div id="controls" ></div>	
+    <div id="right" class="column" style="float:right; width:35vw; margin: 0px; height:100vh;"> 
+	 </div>      
+	 <div id="controls" ></div>	
   </div>   
-  
-
-  
 </body>
 
-<!--<link href="https://fonts.googleapis.com/css?family=Indie+Flower" type="text/css" rel="stylesheet">-->
-<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<!--<link href="https://fonts.googleapis.com/css?family=Indie+Flower" type="text/css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">-->
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
 
-<link rel="stylesheet" type="text/css" href="music.css?32423asd">
+<link rel="stylesheet" type="text/css" href="music.css">
 <link rel="stylesheet" href="complete/awesomplete.css" />
 <script src="complete/awesomplete.js" async></script>
 
@@ -348,7 +367,7 @@ div.tab button.active {
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
 <script src="https://d3js.org/topojson.v1.min.js"></script>
 <script src="https://d3js.org/d3-color.v1.min.js"></script>
-<script src="utils.js"></script>
+<script src="js/utils.js"></script>
 <script src="https://s3.amazonaws.com/stitch-sdks/js/library/stable/stitch.min.js"></script>
 <link rel="stylesheet" href="css/streamgraph.css"></script>
 <script src="js/streamgraph.js"></script>
@@ -368,6 +387,26 @@ let leftDiv = document.getElementById("left");
 
 let width = leftDiv.clientWidth;
 let height = window.innerHeight ;
+
+let menu = d3.select(".main-menu")
+let menuContent = d3.select(".menu-content")
+
+menu.on("mouseenter", function(d) {
+    console.log("enter")
+    menu.transition()
+      .duration(400)
+      .style("width", "300px")
+    menuContent
+      .style("display", "initial")
+  })
+
+menu.on("mouseleave", function(d) {
+    console.log("leave")
+    menuContent.style("display", "none")
+    menu.transition()
+      .duration(250)
+      .style("width", "36px")
+  })
 
 /*
 map.append("use")
@@ -403,7 +442,9 @@ const Europe = ["se","hu","pl","be","gr","es","fi","at","ch","sk","gb","pt","is"
 const Oceania = ["au","nz"];
 const AsiaOceania = Asia.concat(Oceania);
 
-const continentColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6"];
+//const continentColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6"];
+//const continentColors = ["#3377ff", "#ff5a33", "#ffad33", "#33ff3f", "#990099", "#0099c6"];
+const continentColors = ["#295fcc", "#cc4829", "#cc8a29", "#29cc33", "#990099", "#0099c6"];
 const continentColorsDict = {
   "Europe": continentColors[0],
   "North America": continentColors[1],
@@ -453,7 +494,7 @@ for(let continent in continentColorsDict) {
                               .domain([0,0.2,1])
                               //.interpolate(d3.interpolateHcl)
                               .interpolate(d3.interpolateRgb)
-                              .range([d3.rgb(continentColorsDict[continent]), d3.interpolateRgb(d3.rgb(continentColorsDict[continent]),"#666666")(0.5), d3.rgb("#666666")]);
+                              .range([d3.rgb(continentColorsDict[continent]), d3.interpolateRgb(d3.rgb(continentColorsDict[continent]),"#666")(0.5), d3.rgb("#666")]);
 }
 
 
@@ -462,12 +503,17 @@ let svg = d3.select("#left").append("svg")
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
-let worldMap = new WorldMap(width * 0.8, height * 0.9, svg, continentColorsDict, CountryContinentDict);
+let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict);
 
-let rankPage = d3.select("#left").append("div")
+let rankPage = d3.select("#right").append("div")
     .attr("class", "table-container")
-    .style("width", 75 + "vw")
-    .style("height", height + "px")
+    .style("margin-left", "10px")
+    .style("width", "calc(35vw - 46px)")
+    .style("height", 100 + "vh")
+
+rankPage
+    .style("top", 0 + "px")
+    .style("right", 36 + "px")
 /*
     .attr("class", "node")
     .attr("width", width)
@@ -477,8 +523,9 @@ let rankPage = d3.select("#left").append("div")
     .style("width", width + "px")
     .style("height", height + "px");*/
 
-
+/*
 let navigationMap = true;
+
 
 let navigation = svg.append("image")
     .attr("xlink:href","img/semi.svg")
@@ -487,6 +534,8 @@ let navigation = svg.append("image")
 
 navigation
   .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ")");
+
+
 
 function getNavigationTransform() {
     if(navigationMap) {
@@ -546,24 +595,26 @@ navigation.on("click", function() {
 
     streamGraphTransition(1000);
   })
-
+*/
 function streamGraphTransition(delay) {
-
+/*
   if(streamGraph) {   
     if(navigationMap) {
+      */
       streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + ((width/2)-(streamGraph.streamGraph.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+        .attr("transform", "translate(" + ((width/2)-(streamGraph.streamGraph.node().getBoundingClientRect().width / 2)) + "," + (height /*- navigation.node().getBoundingClientRect().height*/ - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+        .duration(delay) 
+        .delay(0)   
+  /*  }
+    else {   
+      streamGraph.streamGraph.transition()
+        .attr("transform", "translate(" + (width-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
         .duration(delay) 
         .delay(0)   
     }
-    else {      
-      streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + /*40*/(width-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
-        .duration(delay) 
-        .delay(0)   
-    }
-  }
+  }*/
 }
+
 
 const lowestDate = new Date("2017-01-01T12:00:00.000Z");
 let midDate = new Date("2017-07-01T00:00:00.000Z");
@@ -721,7 +772,7 @@ let songListCallback = function(list) {
                 //console.log(JSON.stringify(timelapseData))
 
                 let topListData = getSongTopListData(timelapseData[0]);
-                createToplist(topListData, {"position": "#","country": "Country", "value": "Streams"}, ({position, country, value}) => ({position, country, value}), "value")
+                createToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
 
                 startSongTimeLapse(timelapseData, 0.2);
                 console.log("Start timelapse")
@@ -734,13 +785,14 @@ let songListCallback = function(list) {
 
           streamGraph = new StreamGraph(width, height/6, streamData, svg, streamGraphListener, continentColors, null)
           streamGraph.streamGraph 
-            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height - navigation.node().getBoundingClientRect().height - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height /*- navigation.node().getBoundingClientRect().height*/ - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
 
           streamGraphTransition(1000);
 
         }
 
-        let legend = setRankLegend(width/30, height/2, colorScales, svg);
+        //alet legend = setRankLegend(width/30, height/2, [colorScale], svg);
+        let legend = setRankLegend(width/20, height/3, colorScales, svg);
         legend
           .attr("transform", "translate(" + 10 + ", " + (height/2 - legend.node().getBoundingClientRect().height/2) + ")")
 
@@ -759,6 +811,11 @@ d3.json("world-110m.json", function(error, w) {
   if (error) throw error;
   world = w;
   countries = topojson.feature(world, world.objects.countries).features
+
+  //Singapore and HongKong are not present in the low quality TopoJSON
+  countries.push({"id":702})
+  countries.push({"id":344})
+
   //let neighbors = topojson.neighbors(world.objects.countries.geometries)
   d3.json("id_dict.json", function(error, dict) {
     countries.forEach(function(d, i) {
@@ -778,7 +835,6 @@ d3.json("world-110m.json", function(error, w) {
             }
           }
         })
-
 
         worldMap.drawMap();
         setCountriesList();
@@ -801,7 +857,8 @@ function setCountriesList() {
   };
 
 
-  d3.select("#Countries").style("overflow","scroll");
+  //d3.select("#Countries").style("overflow","scroll");
+  d3.select("#Countries").style("overflow","hidden");
 
   // 
 
@@ -877,13 +934,14 @@ function startSongTimeLapse(data, speed) {
             /*let shade = (100 - position) * 255 / 99.0;
             countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
 
-            countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)
+            countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)            
+            //countriesColors[region] = colorScale(position/100.0)
 
 
             let topListData = getSongTopListData(data[week]);
 
-            updateToplist(topListData, {"position": "#","country": "Country", "value": "Streams"}, ({position, country, value}) => ({position, country, value}), "value");
-            //countriesColors[region] = colorScale(position/100.0)
+            updateToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
+
           }
         }
         else {
@@ -912,11 +970,12 @@ function resize() {
   width = leftDiv.clientWidth;
   height = window.innerHeight ;
 
+/*
   navigation
     .attr("width", width/15)
     .attr("height", width/30)
     .attr("transform", getNavigationTransform());
-
+*/
 
   d3.select("svg")
     .attr("width", width)
@@ -935,7 +994,7 @@ function redraw() {
   console.log("Redraw")
   resize();
   if(streamGraph) {
-    streamGraph.resize(width/2, height/6)
+    streamGraph.resize(width, height/6)
     streamGraphTransition(0);
   }
 }
@@ -1025,16 +1084,20 @@ function createToplist(toplistData, keys, filter, sortBy){
         return 0;
     });
 
+    toplistData = toplistData.slice(0,20);
+
     //console.log(JSON.stringify(toplistData));
 
-    var keyValues = d3.keys(toplistData[0]);
+    //var keyValues = d3.keys(toplistData[0]);
     //let keys = {"p": "#","n": "Title", "a": "Artist", "s": "Streams"};
     let head = rankPage
         .append("div")
         .attr("class", "table")
         .append("div")
         .attr("class", "headers")
-        .style("height", data_row_size + "px");
+        //.style("height", data_row_size + "px");
+
+    console.log(d3.entries(keys))
 
     head.selectAll("div.header")
         .data(d3.entries(keys))
@@ -1080,7 +1143,9 @@ function createToplist(toplistData, keys, filter, sortBy){
             tip.show(d);             
             let radarCallback = function(features) {
               //console.log(features)
-              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+              if(features[0]) {
+                let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+              }
             }
 
             getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})
@@ -1167,20 +1232,23 @@ function transformData() {
 }
 
 function getSongTopListData(weekData) {
-  let topListData = [];
+  let temp = [];
   for(key in weekData) {
     if(key != "date") {
-      topListData.push(weekData[key])
+      temp.push(weekData[key])
     }
   }
 
-  console.log(topListData);
-
-  topListData.forEach(x => {
+  let topListData = [];
+  temp.forEach(x => {
+    let entry = {};
     if(spotify_dict[x.region]) {
-      console.log(x)
-      x["country"] = spotify_dict[x.region].name;
-      x["id"] = spotify_dict[x.region].id;
+      entry["country"] = spotify_dict[x.region].name;
+      entry["id"] = spotify_dict[x.region].id;
+      entry["streams"] = x.value;
+      entry["position"] = x.position;
+      entry["formatted_streams"] = nFormatter(x.value, 3);
+      topListData.push(entry);
     } else {
       console.log("Problem with " + x.region)
     }
@@ -1191,11 +1259,15 @@ function getSongTopListData(weekData) {
 
 function updateToplist(newToplist, keys, filter, sortBy){ 
 
+
+
     newToplist = newToplist.sort(function(a, b){
       if(+a[sortBy] < +b[sortBy]) return 1;
       if(+a[sortBy] > +b[sortBy]) return -1;
       return 0;
     });
+
+    newToplist = newToplist.slice(0,20);
 
 
     //console.log(newToplist);
@@ -1247,7 +1319,9 @@ function updateToplist(newToplist, keys, filter, sortBy){
         tip.show(d);
         let radarCallback = function(features) {
           //console.log(features)
-          let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+          if(features[0]){
+            let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+          }
         }
 
         getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})                   
@@ -1375,10 +1449,11 @@ function showDetails()
 }
 
 
-
+/*
 d3.select("#controls").insert("button", ".table").on("click", sortSheet).html("sort")
 d3.select("#controls").insert("button", ".table").on("click", transitionSheet).html("transition")
 d3.select("#controls").insert("button", ".table").on("click", transformData).html("transform")
+*/
 
 //////////////////////////////////////////////////////////////
 //////////////////////// Set-Up //////////////////////////////

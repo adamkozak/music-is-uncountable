@@ -14,6 +14,8 @@ let dictPolygon = {
 }
 */
 
+
+
 let dictPolygon = {
   "fr": 2,
   "no" : 0,
@@ -27,15 +29,23 @@ let dictPolygon = {
   //"nl" : 1,
 }
 
+
+let widthHeightRatio = 8/5.8;
+
 class WorldMap {
 
 	constructor(width, height, svg, continentColorsDict, CountryContinentDict) {
 
-    this.height = height;
+		if(width > widthHeightRatio * height) {
+			width = height * widthHeightRatio;
+		} else {
+			height = width / widthHeightRatio;
+		}
+
+		this.height = height;
     this.width = width;
 
-
-		let scale = Math.min(width/7.2, height/4.6)
+  	let scale = width / 6.6
 
 		this.projection = d3.geoMercator()/*d3.geoNaturalEarth1()*//*d3.geoConicConformal()*//*d3.geoEquirectangular() */
 		    .scale(scale)
@@ -65,7 +75,16 @@ class WorldMap {
 
 	resize(width, height) {
 
-  	let scale = Math.min(width/7.2, height/4.6)
+		if(width > widthHeightRatio * height) {
+			width = height * widthHeightRatio;
+		} else {
+			height = width / widthHeightRatio;
+		}
+
+		this.height = height;
+    this.width = width;
+
+  	let scale = width / 6.2
 
 	  this.projection
 	    .scale(scale)
@@ -149,7 +168,7 @@ class WorldMap {
 	            return countriesColors[d.alpha2]
 	          }
 	          else {
-	            return d3.color("#828282")
+	            return d3.color("#666")
 	          }
 	        }
 	        else {

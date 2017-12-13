@@ -45,7 +45,6 @@ function drawRectangleScale(width, height, x1, colorScale, svg, legend, id) {
     for(let i = 10; i >= 0; i--) {
       scale.push(colorScale(i/10.0))
     }
-    console.log(scale)
         // append gradient bar
     var gradient = svg.append('defs')
         .attr("class", "legend")
@@ -75,9 +74,9 @@ function drawRectangleScale(width, height, x1, colorScale, svg, legend, id) {
 
     legend.append('rect')
         .attr("class", 'legendrect')
-        .attr('x', x1)
+        .attr('x', x1-1)
         .attr('y', 0)
-        .attr('width', width)
+        .attr('width', width+1)
         .attr('height', height)
         .style('fill', 'url(#gradient' + id + ')');
 }
