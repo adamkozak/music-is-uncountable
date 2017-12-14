@@ -34,7 +34,46 @@ let widthHeightRatio = 8/5.8;
 
 class WorldMap {
 
-	constructor(width, height, svg, continentColorsDict, CountryContinentDict) {
+	constructor(width, height, svg, continentColorsDict, CountryContinentDict, callback) {
+		let _this = this;
+
+		// Load the TopoJSON 
+		d3.json("world-110m.json", function(error, w) {
+		  if (error) throw error;
+
+		  _this.world = w;
+		  _this.countries = topojson.feature(_this.world, _this.world.objects.countries).features
+
+		  //Singapore and HongKong are not present in the low quality TopoJSON
+		  _this.countries.push({"id":702})
+		  _this.countries.push({"id":344})
+
+		  //let neighbors = topojson.neighbors(world.objects.countries.geometries)
+		  d3.json("id_dict.json", function(error, dict) {
+		    _this.countries.forEach(function(d, i) {
+		      if(dict["" + parseInt(d.id)]) {
+		        d.name = dict[d.id][1]
+		        d.alpha2 = dict[d.id][0]
+		      }
+		    })
+		    _this.countries = _this.countries.filter(d => d.alpha2 != "aq")
+		    d3.json("Datasets/countries.json", function(error, c) {
+	        _this.spotify_countries = c;
+	        _this.spotify_dict = {}
+	        _this.spotify_countries.forEach(function(d, i) {
+	          for(let i = 0; i < _this.countries.length; i++) {
+	            if(d == _this.countries[i].alpha2) {
+	              _this.spotify_dict[d] = _this.countries[i]
+	            }
+	          }
+	        })
+
+	        _this.drawMap();
+	  			callback();
+		    });
+		  });
+		});
+
 
 		if(width > widthHeightRatio * height) {
 			width = height * widthHeightRatio;
@@ -64,8 +103,6 @@ class WorldMap {
 		    .datum({type: "Sphere"})
 		    .attr("id", "sphere")
 		    .attr("d", this.path);
-
-
 
 		this.map.append("path")
 		    .datum(graticule)
@@ -102,7 +139,7 @@ class WorldMap {
 	drawMap(countriesColors, delta) {
 
 	  this.map.selectAll(".country")
-	    .data(countries)
+	    .data(this.countries)
 	    .enter().insert("path", ".graticule")
 	    .attr("class", "country")
 	    .attr("d", this.path)
@@ -142,7 +179,7 @@ class WorldMap {
 	  this.map.selectAll(".boundary").remove()
 	  // Draw the boundaries
 	  this.map.insert("path", ".graticule")
-	    .datum(topojson.mesh(world, world.objects.countries, function(a, b) { return a !== b; }))
+	    .datum(topojson.mesh(this.world, this.world.objects.countries, function(a, b) { return a !== b; }))
 	    .attr("class", "boundary")
 	    .attr("d", this.path);
 
@@ -158,11 +195,12 @@ class WorldMap {
 	    time = delta;
 	  }
 
+	  let _this = this;
 	  this.map.selectAll(".country") 
 	    .transition()
 	    .duration(time)
 	    .style("fill", function(d, i) { 
-	      if(d.alpha2 in spotify_dict) {
+	      if(d.alpha2 in _this.spotify_dict) {
 	        if(countriesColors != undefined) {
 	          if(d.alpha2 in countriesColors) {
 	            return countriesColors[d.alpha2]
@@ -182,76 +220,87 @@ class WorldMap {
 	    })
 	}
 
+	//---------------------------------------
+	// Zoom when country selected in the list 
+	//Zooming function
+	zoom(AlphA, countryButton) {
+		
+		/*
+		count_list.selectAll("li").style("color","inherit");
+		count_list.select("#"+AlphA).style("color", "DarkSeaGreen");
+		*/
+		
+		let country ;
+		this.countries.forEach((ctry) => {
+			if (ctry.alpha2 == AlphA) {
+				country = ctry;
+			} 
+		});
+		
+		let final_country = country;
+
+		if (active.node() === countryButton) return this.reset(AlphA);
+
+		let delay = 0;
+		
+		if(active.node()) {
+			delay = 1000;
+		}
+
+		this.reset();
+		let _this = this;
 
 
-//---------------------------------------
-// Zoom when country selected in the list 
-		//Zooming function
-zoom(AlphA, countryButton) {
-	
-	/*
-	count_list.selectAll("li").style("color","inherit");
-	count_list.select("#"+AlphA).style("color", "DarkSeaGreen");
-	*/
-	
-	let country ;
-	countries.forEach((ctry) => {
-		if (ctry.alpha2 == AlphA) {
-			country = ctry;
-		} 
-	});
-	
-	let final_country = country;
-	if (active.node() === countryButton) return this.reset(AlphA);
-		active.classed("active", false);
-		active = d3.select(countryButton).classed("active", true);
+		setTimeout(function() {
+
+			active.classed("active", false);
+			active = d3.select(countryButton).classed("active", true);
+					
 			
-	
-	//if the country needs a modification for zooming 
-	if (AlphA in dictPolygon ) { 
-		//copy of the country dict
-		final_country = JSON.parse(JSON.stringify(country));
-		//select the polygon number that needs to be zoomed
-		let polNum = dictPolygon[AlphA];
-		//resets the country dict to only this polynom for the bounds
+			//if the country needs a modification for zooming 
+			if (AlphA in dictPolygon ) { 
+				//copy of the country dict
+				final_country = JSON.parse(JSON.stringify(country));
+				//select the polygon number that needs to be zoomed
+				let polNum = dictPolygon[AlphA];
+				//resets the country dict to only this polynom for the bounds
 
-		let	pointsCountry = final_country.geometry.coordinates[polNum];
-		final_country.geometry.coordinates = pointsCountry;
-		final_country.geometry.type = "Polygon";
-	}
+				let	pointsCountry = final_country.geometry.coordinates[polNum];
+				final_country.geometry.coordinates = pointsCountry;
+				final_country.geometry.type = "Polygon";
+			}
+					
+			let bounds = _this.path.bounds(final_country)
 
-			
-	let bounds = this.path.bounds(final_country)
+			let
+				xmin = bounds[0][0],
+				xmax = bounds[1][0],
+				ymin = bounds[0][1],
+				ymax = bounds[1][1],
+				dx = xmax - xmin,
+				dy = ymax - ymin,
+				x_mid = (xmin + xmax) / 2,
+				y_mid = (ymin + ymax) / 2;
+				
+				let scale = 0.9 / Math.max(dx / width, dy / height),
+				translate = [width / 2 - scale * x_mid, height / 2 - scale * y_mid];
+				
+			  worldMap.map.transition()
+				  .duration(1000)
+				  .ease(d3.easeExp)
+				  .style("stroke-width", 1.5 / scale + "px")
+				  .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
 
-	let
-		xmin = bounds[0][0],
-		xmax = bounds[1][0],
-		ymin = bounds[0][1],
-		ymax = bounds[1][1],
-		dx = xmax - xmin,
-		dy = ymax - ymin,
-		x_mid = (xmin + xmax) / 2,
-		y_mid = (ymin + ymax) / 2;
-		
-		
-		let scale = 0.9 / Math.max(dx / width, dy / height),
-		translate = [width / 2 - scale * x_mid, height / 2 - scale * y_mid];
-		
-	  worldMap.map.transition()
-		  .duration(1000)
-		  .ease(d3.easeExp)
-		  .style("stroke-width", 1.5 / scale + "px")
-		  .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+			  //this.map.selectAll(".boundary").remove()
 
+			  let strokeWidth = (_this.width/8000.0) 
 
-	  //this.map.selectAll(".boundary").remove()
+			  _this.map.selectAll(".boundary")
+			  	.transition()
+			    .duration(1000)
+			    .style("stroke-width", strokeWidth + "px")
+		}, delay)
 
-	  let strokeWidth = (this.width/8000.0) 
-
-	  this.map.selectAll(".boundary")
-	  	.transition()
-	    .duration(1000)
-	    .style("stroke-width", strokeWidth + "px")
 	}
 		 
 	// Function that resets the properties of the country and dezooms when re-clicked
@@ -272,11 +321,9 @@ zoom(AlphA, countryButton) {
 		  .style("stroke-width", "1.5px")
 		  .style("fill", "red")
 		  .attr("transform", "");
-	
 		
-		count_list.select("#"+a).style("color", "inherit");
+		//count_list.select("#"+a).style("color", "inherit");
 		  
 	}
 		
-
 }

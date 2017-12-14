@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
-  <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
-  <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
-  <title>Test test</title>
+  <title>Music is uncountable</title>
+  <!--
+  <link rel="stylesheet" href="complete/awesomplete.css" /> 
+  <script src="complete/awesomplete.js" async></script>-->
+  <script type="text/javascript" src="complete/autocomplete.js"></script>
+  <link rel="stylesheet" href="complete/autocomplete.css"/>
 </head>
 
-
 <style>
-
 
 :root {
     --main-row-size: 24;
@@ -325,7 +326,7 @@ div.tab button.active {
 </style>
 
 <body style="margin: 0; background: #222222">
-  <nav class="main-menu" style="width: 300px; right:0;">
+  <nav class="main-menu" style="width: 400px; right:0;">
     <div class="menu-content">
       <div class="tab" style = "height:10vh;">
         <button id = "btnSongs" class="tablinks" onclick="Open(event, 'Songs')" style = "height:10vh; width: 50%;">Songs</button>
@@ -334,12 +335,14 @@ div.tab button.active {
 
       <div id="Songs" class="tabcontent" style = "height:90vh;">
         <h3>Search and select a song !</h3>
-        <input id="song_input" hidden="true" class="awesomplete"/>
+        <div id="autocomplete"></div>
+        <!--
+        <input id="song_input" hidden="true" class="awesomplete"/> -->
         <button id="go_button" hidden="true">Show infos</button>
         <p>  </p>
       </div>
 
-      <div id="Countries" class="tabcontent" style = "height:90vh;">
+      <div id="Countries" class="tabcontent" style = "height:90vh;  overflow:scroll;">
         <h3>Select a country !</h3>
         <p></p> 
       </div>
@@ -360,8 +363,8 @@ div.tab button.active {
 <link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
 
 <link rel="stylesheet" type="text/css" href="music.css">
-<link rel="stylesheet" href="complete/awesomplete.css" />
-<script src="complete/awesomplete.js" async></script>
+
+
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
@@ -395,7 +398,7 @@ menu.on("mouseenter", function(d) {
     console.log("enter")
     menu.transition()
       .duration(400)
-      .style("width", "300px")
+      .style("width", "400px")
     menuContent
       .style("display", "initial")
   })
@@ -503,7 +506,12 @@ let svg = d3.select("#left").append("svg")
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
-let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict);
+let worldDataReadyCallback = function() {
+  setCountriesList();
+}
+
+let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict, worldDataReadyCallback);
+
 
 let rankPage = d3.select("#right").append("div")
     .attr("class", "table-container")
@@ -602,7 +610,7 @@ function streamGraphTransition(delay) {
     if(navigationMap) {
       */
       streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + ((width/2)-(streamGraph.streamGraph.node().getBoundingClientRect().width / 2)) + "," + (height /*- navigation.node().getBoundingClientRect().height*/ - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+        .attr("transform", "translate(" + (width-(streamGraph.streamGraph.node().getBoundingClientRect().width - 10)) + "," + (height /*- navigation.node().getBoundingClientRect().height*/ - streamGraph.streamGraph.node().getBoundingClientRect().height) + ")")
         .duration(delay) 
         .delay(0)   
   /*  }
@@ -620,11 +628,7 @@ const lowestDate = new Date("2017-01-01T12:00:00.000Z");
 let midDate = new Date("2017-07-01T00:00:00.000Z");
 let selectedSongID;
 
-let countries;
-let spotify_countries;
 let streamsDict = {};
-let spotify_dict;
-let world;
 
 function linspace(start, end, n) {
     var out = [];
@@ -670,6 +674,8 @@ let songListCallback = function(list) {
   });
 
 
+/*
+
   // Set the autocomplete input
   let input = document.getElementById("song_input");
   new Awesomplete(input, {
@@ -683,15 +689,43 @@ let songListCallback = function(list) {
 
   // Display the autocomplete input
   input.hidden = false;
+*/
+
+  //Variable to hold autocomplete options
+
+
+list = list.map(x => {
+  let y = {}
+  y["text"] = x["Track Name"] + " - " + x["Artist"]
+  y["id"] = x.id
+  return y;
+})
+
+console.log(list)
+
+let mc = autocomplete(document.getElementById('autocomplete'))
+        .keys(list)
+        .dataField("text")
+        .placeHolder("Search for song or artist")
+        .width(960)
+        .height(500)
+        .onSelected(onSelect)
+        .render();
+
+  //Call back for when user selects an option
+  function onSelect(d) {
+    console.log(d)
+    selectedSongID = d.id;
+  }
 
   let button = document.getElementById("go_button");
   button.hidden = false;
   button.onclick = function() {    
-    if(selectedSongID && spotify_countries) {
+    if(selectedSongID && worldMap.spotify_countries) {
       let songEntriesCallback = function(timeLine) {
         timeLine = timeLine.filter(x => x.r != 'global')
 
-        spotify_countries.forEach(function(d, i) {
+        worldMap.spotify_countries.forEach(function(d, i) {
           let filtered = timeLine.filter(x => d == x.r);
           let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
               return a + v;
@@ -783,7 +817,7 @@ let songListCallback = function(list) {
             }
           }
 
-          streamGraph = new StreamGraph(width, height/6, streamData, svg, streamGraphListener, continentColors, null)
+          streamGraph = new StreamGraph(width/2, height/7, streamData, svg, streamGraphListener, continentColors, null)
           streamGraph.streamGraph 
             .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height /*- navigation.node().getBoundingClientRect().height*/ - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
 
@@ -806,42 +840,6 @@ let songListCallback = function(list) {
 
 client.login().then(() => getAllDocuments(db.collection('songs'), {}, songListCallback, [], {_id: 0, id: 1, "Track Name": 1, "Artist": 1}))
 
-
-d3.json("world-110m.json", function(error, w) {
-  if (error) throw error;
-  world = w;
-  countries = topojson.feature(world, world.objects.countries).features
-
-  //Singapore and HongKong are not present in the low quality TopoJSON
-  countries.push({"id":702})
-  countries.push({"id":344})
-
-  //let neighbors = topojson.neighbors(world.objects.countries.geometries)
-  d3.json("id_dict.json", function(error, dict) {
-    countries.forEach(function(d, i) {
-      if(dict["" + parseInt(d.id)]) {
-        d.name = dict[d.id][1]
-        d.alpha2 = dict[d.id][0]
-      }
-    })
-    countries = countries.filter(d => d.alpha2 != "aq")
-    d3.json("Datasets/countries.json", function(error, c) {
-        spotify_countries = c;
-        spotify_dict = {}
-        spotify_countries.forEach(function(d, i) {
-          for(let i = 0; i < countries.length; i++) {
-            if(d == countries[i].alpha2) {
-              spotify_dict[d] = countries[i]
-            }
-          }
-        })
-
-        worldMap.drawMap();
-        setCountriesList();
-    });
-  });
-});
-
 let active = d3.select(null);  
 let count_par;
 let count_list;
@@ -851,22 +849,37 @@ function setCountriesList() {
   count_par = d3.select("#Countries").select('p');
   count_list = count_par.append("ul");
 
-  for (i in spotify_dict){
-    count_list.append("li").attr("class","country_list").attr("id", i)
-    .text(spotify_dict[i].name);
+  let ordered_countries = []
+
+  for (i in worldMap.spotify_dict){
+    ordered_countries.push(worldMap.spotify_dict[i])
   };
 
+  // Singapore and Hong-kong are too small to appear in the TopoJSON. We therefore don't let the user zoom on them.
+  ordered_countries = ordered_countries.filter(x => x["alpha2"] != "sg" && x["alpha2"] != "hk");
+
+  // Order countries alphabetically
+  ordered_countries = ordered_countries.sort(function(a, b){
+    if(a.name < b.name) return -1;
+    if(a.name > b.name) return 1;
+    return 0;
+  });
+
+  //Append countries in the list
+  for(let i = 0; i < ordered_countries.length; i++) {
+    count_list.append("li").attr("class","country_list").attr("id", ordered_countries[i]["alpha2"])
+    .text(ordered_countries[i].name);
+  }
 
   //d3.select("#Countries").style("overflow","scroll");
-  d3.select("#Countries").style("overflow","hidden");
+  d3.select("#Countries").style("overflow","scroll");
 
   // 
-
   let songs_par = d3.select("#Songs").select('p');
   let songs_list = songs_par.append("ul"); 
       
       
-  Object.keys(spotify_dict).forEach(function(AlphA){
+  Object.keys(worldMap.spotify_dict).forEach(function(AlphA){
   count_list.select("#"+AlphA)
     .on("mouseover", function() { d3.select("#"+AlphA).style("font-weight", "bold")})
     .on("mouseout", function() { d3.select("#"+AlphA).style("font-weight", "inherit")})
@@ -925,8 +938,8 @@ function startSongTimeLapse(data, speed) {
     streamGraph.setTimeStamp(it/10.0);
     if(it%10 == 0) {
       let countriesColors = {}
-      for(let i = 0; i < spotify_countries.length; i++) {
-        let region = spotify_countries[i];
+      for(let i = 0; i < worldMap.spotify_countries.length; i++) {
+        let region = worldMap.spotify_countries[i];
         if(data[week]) {
           if(region in data[week]) {
             
@@ -985,21 +998,12 @@ function resize() {
 
   if(streamGraph) {
     //streamGraph.resize(width/2, height/6)
-    streamGraphTransition(0);
-
-  }
-}
-
-function redraw() {
-  console.log("Redraw")
-  resize();
-  if(streamGraph) {
-    streamGraph.resize(width, height/6)
+    streamGraph.resize(width/2, height/7)
     streamGraphTransition(0);
   }
 }
 
-window.addEventListener("resize", redraw);
+window.addEventListener("resize", resize);
 
 d3.select(self.frameElement).style("height", height + "px");
 
@@ -1242,9 +1246,9 @@ function getSongTopListData(weekData) {
   let topListData = [];
   temp.forEach(x => {
     let entry = {};
-    if(spotify_dict[x.region]) {
-      entry["country"] = spotify_dict[x.region].name;
-      entry["id"] = spotify_dict[x.region].id;
+    if(worldMap.spotify_dict[x.region]) {
+      entry["country"] = worldMap.spotify_dict[x.region].name;
+      entry["id"] = worldMap.spotify_dict[x.region].id;
       entry["streams"] = x.value;
       entry["position"] = x.position;
       entry["formatted_streams"] = nFormatter(x.value, 3);
@@ -1462,7 +1466,7 @@ d3.select("#controls").insert("button", ".table").on("click", transformData).htm
 var margin_radar = { top: 30, right: 40, bottom: 30, left: 40 },
 width_radar = +style.getPropertyValue('--tooltip-song-size') + 60 - margin_radar.left - margin_radar.right,
 height_radar = +style.getPropertyValue('--tooltip-song-size') - margin_radar.top - margin_radar.bottom;
-redraw();
+resize();
 
 //////////////////////////////////////////////////////////////
 ////////////////////////// Data //////////////////////////////

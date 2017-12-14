@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<head>
+
+    <meta HTTP-EQUIV="X-UA-COMPATIBLE" CONTENT="IE=EmulateIE9" >
+    <script type="text/javascript" src="./autocomplete.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+
+
+    <link rel="stylesheet" href="./autocomplete.css"/>
+
+</head>
+
+<body>
+
+<div id="test" style="width:100%; height:100%;"></div>
+
+
+<script language="JavaScript">
+
+    //Variable to hold autocomplete options
+    var keys;
+
+    //Load US States as options from CSV - but this can also be created dynamically
+    d3.csv("states.csv",function (csv) {
+        console.log(csv)
+        keys=csv;
+        start();
+    });
+
+
+    //Call back for when user selects an option
+    function onSelect(d) {
+        alert(d.State);
+    }
+
+    //Setup and render the autocomplete
+    function start() {
+        var mc = autocomplete(document.getElementById('test'))
+                .keys(keys)
+                .dataField("State")
+                .placeHolder("Search States - Start typing here")
+                .width(960)
+                .height(500)
+                .onSelected(onSelect)
+                .render();
+    }
+
+</script>
+
+</body>
+
+</html>
+
+<!--
+
+ Copyright (c) 2014 BrightPoint Consulting, Inc.
+
+ Permission is hereby granted, free of charge, to any person
+ obtaining a copy of this software and associated documentation
+ files (the "Software"), to deal in the Software without
+ restriction, including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following
+ conditions:
+
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ OTHER DEALINGS IN THE SOFTWARE.
+
+ -->

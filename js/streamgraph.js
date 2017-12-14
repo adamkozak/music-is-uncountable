@@ -28,7 +28,6 @@ function stackMax(layer) {
 
 class StreamGraph {
 
-
   constructor(width, height, data, svg, listener, colorrange = null, color = "blue") {
 
     this.listener = listener;
@@ -105,6 +104,20 @@ class StreamGraph {
       .attr("class", "yaxis")
       .call(yAxis);
 
+    // text label for the y axis
+    this.streamGraph.append("text")
+        .attr("transform", "rotate(0)")
+        .attr("y", -10)
+        .attr("x",0)
+        .attr("dy", "0em")
+        .style("fill", "white")
+        .style("text-anchor", "middle")
+        .style("font-size", "14px")
+        .text("Streams/week"); 
+ 
+
+        
+
     this.applyNewData();
 
     this.drawPlayButton();
@@ -113,43 +126,135 @@ class StreamGraph {
     this.resize(width, height);
   }
 
-  drawPlayButton() {
+  drawPlayButton(delay = 0) {
+    /*
     this.streamGraph.select(".pausebutton").remove();
+    this.streamGraph.select(".fastbutton").remove();
+    this.streamGraph.select(".slowbutton").remove();
+    */
+    let buttonSize = this.height/3;
+
     this.streamGraph.select(".playbutton").remove();
+
+    if(this.pauseButton) {
+      this.pauseButton.on("click", null);
+
+      this.pauseButton.transition()
+        .duration(delay)
+        .attr("opacity", 0)
+    }
+
+    if(this.fastButton) {
+      this.fastButton.on("click", null);
+
+      this.fastButton.transition()
+        .duration(delay)
+        .attr("x", (this.width/2 - buttonSize))
+        .attr("opacity", 0)
+    }
+
+    if(this.slowButton) {
+      this.slowButton.on("click", null);
+
+      this.slowButton.transition()
+        .duration(delay)
+        .attr("x", (this.width/2 - this.height/3))
+        .attr("opacity", 0)
+    }
+
+
     this.playButton = this.streamGraph.append("image")
       .attr("class", "playbutton")
-      .attr("xlink:href","img/play.svg")
-      .attr("width", this.height/2)
-      .attr("height", this.height/2)
-      .attr("x", (-this.height/2  - margin.left))
-      .attr("y", this.height/2);
+      .attr("xlink:href","img/play2.svg")
+      .attr("width", buttonSize)
+      .attr("height", buttonSize)
+      .attr("x", (this.width - margin.left)/2 - buttonSize/2)
+      .attr("y", this.height + buttonSize/2)
+      .attr("opacity", 0);
+
+    this.playButton.transition()
+      .duration(delay)
+      .attr("opacity", 1)
 
     let _this = this;
 
     this.playButton.on("click", function() { 
       _this.playing = true;
       _this.listener.buttonPressed(true);
-      _this.drawPauseButton();
+      _this.drawPauseButton(250);
     });
   }
 
-  drawPauseButton() {
-    this.streamGraph.select(".playbutton").remove();
+  drawPauseButton(delay) {
+    let buttonSize = this.height/3;
+    /*
+    this.streamGraph.select(".playbutton").remove();*/
     this.streamGraph.select(".pausebutton").remove();
+    this.streamGraph.select(".fastbutton").remove();
+    this.streamGraph.select(".slowbutton").remove();
+
+    if(this.playButton) {
+      this.playButton.on("click", null);      
+      this.playButton.transition()
+        .duration(delay)
+        .attr("opacity", 0)
+    }
+
     this.pauseButton = this.streamGraph.append("image")
       .attr("class", "pausebutton")
-      .attr("xlink:href","img/pause.svg")
-      .attr("width", this.height/2)
-      .attr("height", this.height/2)
-      .attr("x", (-this.height/2 - margin.left))
-      .attr("y", this.height/2);
+      .attr("xlink:href","img/pause2.svg")
+      .attr("width", buttonSize)
+      .attr("height", buttonSize)
+      .attr("x", (this.width - margin.left)/2 - buttonSize/2)
+      .attr("y", this.height + buttonSize/2)
+      .attr("opacity", 0);
+
+    this.pauseButton.transition()
+      .duration(delay)
+      .attr("opacity", 1)
 
     let _this = this;
 
     this.pauseButton.on("click", function() { 
       _this.playing = false;
       _this.listener.buttonPressed(false);
-      _this.drawPlayButton();
+      _this.drawPlayButton(250);
+    });
+
+    this.fastButton = this.streamGraph.append("image")
+      .attr("class", "fastbutton")
+      .attr("xlink:href","img/forward.svg")
+      .attr("width", buttonSize)
+      .attr("height", buttonSize)
+      .attr("x", (this.width - margin.left)/2 - buttonSize/2)
+      .attr("y", this.height + buttonSize/2)
+      .attr("opacity", 0);
+
+    this.fastButton.transition()
+      .duration(delay)
+      .attr("x", (this.width - margin.left)/2 + buttonSize)
+      .attr("opacity", 1)
+
+    this.fastButton.on("click", function() { 
+      _this.listener.speed(true);
+    });
+
+    this.slowButton = this.streamGraph.append("image")
+      .attr("class", "slowbutton")
+      .attr("xlink:href","img/backward.svg")
+      .attr("width", buttonSize)
+      .attr("height", buttonSize)
+      .attr("x", (this.width - margin.left)/2 - buttonSize/2)
+      .attr("y", this.height + buttonSize/2)
+      .attr("opacity", 0);
+
+    this.slowButton.transition()
+      .duration(delay)
+      .attr("x", (this.width - margin.left)/2 - 2 * buttonSize)
+      .attr("opacity", 1)
+
+    this.slowButton.on("click", function() { 
+      _this.listener.forward(false);
     });
   }
 
@@ -397,6 +502,7 @@ class StreamGraph {
 
     this.axishandler.select(".yaxis")
       .call(yAxis); 
+
 
     if(this.playing) {
       this.drawPauseButton();
