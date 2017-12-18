@@ -152,7 +152,7 @@ class WorldMap {
 	    .on("mousemove", function(d) {
 	        if(d.name) {
 	          if(streamsDict[d.alpha2] !== undefined) {
-	            countryTooltip .html(d.name + "<br>Yearly Streams: " + streamsDict[d.alpha2])  
+	            countryTooltip .html(d.name + "<br>Yearly Streams: " + nFormatter(streamsDict[d.alpha2], 3))  
 	                .style("left", (d3.event.pageX) + "px")   
 	                .style("top", (d3.event.pageY - 28) + "px");  
 	          }

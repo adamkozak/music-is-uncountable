@@ -395,7 +395,6 @@ let menu = d3.select(".main-menu")
 let menuContent = d3.select(".menu-content")
 
 menu.on("mouseenter", function(d) {
-    console.log("enter")
     menu.transition()
       .duration(400)
       .style("width", "400px")
@@ -404,7 +403,6 @@ menu.on("mouseenter", function(d) {
   })
 
 menu.on("mouseleave", function(d) {
-    console.log("leave")
     menuContent.style("display", "none")
     menu.transition()
       .duration(250)
@@ -515,9 +513,19 @@ let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryCont
 
 let rankPage = d3.select("#right").append("div")
     .attr("class", "table-container")
+    .style("align-items", "center")
     .style("margin-left", "10px")
     .style("width", "calc(35vw - 46px)")
     .style("height", 100 + "vh")
+
+let topListText = rankPage.append("h2")
+  .text("aaa")
+  .style("margin", "10px")
+  .style("width", "calc(100% - 36px)")
+  .style("text-align", "center")
+  .style("color", "white")
+
+
 
 rankPage
     .style("top", 0 + "px")
@@ -626,7 +634,7 @@ function streamGraphTransition(delay) {
 
 const lowestDate = new Date("2017-01-01T12:00:00.000Z");
 let midDate = new Date("2017-07-01T00:00:00.000Z");
-let selectedSongID;
+let selectedSong;
 
 let streamsDict = {};
 
@@ -698,10 +706,10 @@ list = list.map(x => {
   let y = {}
   y["text"] = x["Track Name"] + " - " + x["Artist"]
   y["id"] = x.id
+  y["name"] = x["Track Name"]
+  y["artist"] = x["Artist"]
   return y;
 })
-
-console.log(list)
 
 let mc = autocomplete(document.getElementById('autocomplete'))
         .keys(list)
@@ -714,14 +722,13 @@ let mc = autocomplete(document.getElementById('autocomplete'))
 
   //Call back for when user selects an option
   function onSelect(d) {
-    console.log(d)
-    selectedSongID = d.id;
+    selectedSong = d;
   }
 
   let button = document.getElementById("go_button");
   button.hidden = false;
   button.onclick = function() {    
-    if(selectedSongID && worldMap.spotify_countries) {
+    if(selectedSong && worldMap.spotify_countries) {
       let songEntriesCallback = function(timeLine) {
         timeLine = timeLine.filter(x => x.r != 'global')
 
@@ -794,8 +801,17 @@ let mc = autocomplete(document.getElementById('autocomplete'))
           d.date = format(d.date);
         });
 
+        topListText
+          .text(selectedSong.name + " by " + selectedSong.artist + " - Streams ranking per countries")
+
+        let topListData = getSongYearlyTopListData(timelapseData);
+
+        createToplist(topListData, {"country": "Country", "formatted_streams": "Streams"}, ({country, formatted_streams, position}) => ({country, formatted_streams}), "streams");
+
+
         if(streamGraph) {
           streamGraph.setData(streamData);
+
           //streamGraphTransition(1000);
           //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
         }
@@ -804,15 +820,13 @@ let mc = autocomplete(document.getElementById('autocomplete'))
             buttonPressed(playing) {
               if(playing) {
                 //console.log(JSON.stringify(timelapseData))
-
                 let topListData = getSongTopListData(timelapseData[0]);
-                createToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
 
-                startSongTimeLapse(timelapseData, 0.2);
-                console.log("Start timelapse")
+                createToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "Avg. ranking"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
+                startSongTimeLapse(timelapseData);
               } else {
-                stopSongTimeLapse();
-                console.log("Stop timelapse")
+                //stopSongTimeLapse();
+                streamGraph.pause();
               }
             }
           }
@@ -833,7 +847,7 @@ let mc = autocomplete(document.getElementById('autocomplete'))
         //resize();
       }
 
-      getAllDocuments(db.collection('entries'), {"id":selectedSongID}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
+      getAllDocuments(db.collection('entries'), {"id":selectedSong.id}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
     }
   }
 }
@@ -920,12 +934,7 @@ function Open(evt, Selection) {
 
 //End of Nathalie's code----------------------------------------------------------------------------
 
-function startSongTimeLapse(data, speed) {
-
-  let delta = 1000;
-  if(speed) {
-    delta = 1000 / speed;
-  }
+function startSongTimeLapse(data) {
 
   let it = 0;
   let week = 0;
@@ -934,50 +943,65 @@ function startSongTimeLapse(data, speed) {
     console.log(data)
   }
 
-  timer = setInterval(function() {
-    streamGraph.setTimeStamp(it/10.0);
-    if(it%10 == 0) {
-      let countriesColors = {}
-      for(let i = 0; i < worldMap.spotify_countries.length; i++) {
-        let region = worldMap.spotify_countries[i];
+  function setNextTimeLapse() {
+    let speed = streamGraph.timelapseSpeed;
+    let delta = 1000 / speed;
+
+    timer = setTimeout(function() {  
+      if(streamGraph.playing) {
+        setNextTimeLapse();
+      }
+
+        
+      streamGraph.setTimeStamp(it/20.0);
+      if(it%20 == 0) {
+
+        let topListData = getSongTopListData(data[week]);              
+        updateToplist(speed, topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
+  
+        let countriesColors = {}
+
         if(data[week]) {
-          if(region in data[week]) {
-            
-            let position = data[week][region].position;
-            /*let shade = (100 - position) * 255 / 99.0;
-            countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
+          for(let i = 0; i < worldMap.spotify_countries.length; i++) {
+            let region = worldMap.spotify_countries[i];
+            if(region in data[week]) {
+              
+              let position = data[week][region].position;
+              /*let shade = (100 - position) * 255 / 99.0;
+              countriesColors[region] = d3.color(d3.rgb(shade, shade/2, shade/2))*/
 
-            countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)            
-            //countriesColors[region] = colorScale(position/100.0)
+              countriesColors[region] = colorScales[CountryContinentDict[region]]((position-1)/99.0)            
+              //countriesColors[region] = colorScale(position/100.0)
 
-
-            let topListData = getSongTopListData(data[week]);
-
-            updateToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
-
+            }
           }
         }
         else {
-          stopSongTimeLapse();
+          streamGraph.pause()
+          //stopSongTimeLapse();
+        }
+        worldMap.drawMap(countriesColors, delta);
+
+        week += 1;
+        if(week == data.length) {
+          streamGraph.pause();
+          //stopSongTimeLapse();
         }
       }
-      worldMap.drawMap(countriesColors, delta);
+      it++;
+    }, delta/20.0);
+  }
 
-      week += 1;
-      if(week == data.length) {
-        streamGraph.pause();
-        stopSongTimeLapse();
-      }
-    }
-    it++;
-  }, delta/10);
+  setNextTimeLapse();
   playing = true;
 }
 
+/*
 function stopSongTimeLapse() {
   clearInterval(timer);
   playing = false;
 }
+*/
 
 function resize() {
   width = leftDiv.clientWidth;
@@ -1232,7 +1256,7 @@ function transformData() {
     tweets3 = JSON.parse(JSON.stringify(tweets2));
 
 
-    updateToplist(tweets2.tweets, {"p": "#","n": "Title", "a": "Artist", "s": "Streams"}, ({p, n, a, s}) => ({p, n, a, s}), "s");
+    updateToplist(0.2, tweets2.tweets, {"p": "#","n": "Title", "a": "Artist", "s": "Streams"}, ({p, n, a, s}) => ({p, n, a, s}), "s");
 }
 
 function getSongTopListData(weekData) {
@@ -1261,9 +1285,45 @@ function getSongTopListData(weekData) {
   return topListData;
 }
 
-function updateToplist(newToplist, keys, filter, sortBy){ 
+function getSongYearlyTopListData(data) {
+  let temp = [];
+
+  for(key in worldMap.spotify_dict) {
+    if(key != "date") {
+      let x = {}
+      x["region"] = key;
+      x["value"] = data.reduce(function(a, v) {
+                      if(key in v) {
+                        return a + v[key].value;
+                      } else {
+                        return a;
+                      }
+                    }, 0)
+
+      temp.push(x)
+    }
+  }
 
 
+  let topListData = [];
+  temp.forEach(x => {
+    let entry = {};
+    if(worldMap.spotify_dict[x.region]) {
+      entry["country"] = worldMap.spotify_dict[x.region].name;
+      entry["id"] = worldMap.spotify_dict[x.region].id;
+      entry["streams"] = x.value;
+      entry["position"] = x["avg_position"];
+      entry["formatted_streams"] = nFormatter(x.value, 3);
+      topListData.push(entry);
+    } else {
+      console.log("Problem with " + x.region)
+    }
+  });
+
+  return topListData;
+}
+
+function updateToplist(speed, newToplist, keys, filter, sortBy){ 
 
     newToplist = newToplist.sort(function(a, b){
       if(+a[sortBy] < +b[sortBy]) return 1;
@@ -1289,8 +1349,8 @@ function updateToplist(newToplist, keys, filter, sortBy){
         .attr("is_new", "update");
 
     rows.transition("sorting")
-        .delay((d, i) => {return 100 + (i/newToplist.length) * 2000;})
-        .duration(2000)
+        .delay((d, i) => {return 100 + (i/newToplist.length) * 400/speed;})
+        .duration(400/speed)
         .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";})
         .on("start", addTriangle);
 
@@ -1307,31 +1367,31 @@ function updateToplist(newToplist, keys, filter, sortBy){
         //.on("click", showDetails);
 
     let enter_info = enterRows
-    .append("div")
-    .attr("class", "info")
-    .style("height", data_row_size + "px")
-    .style("width", data_row_size + "px")
-  .append("svg")
-    .attr("width", 24 + "px")
-    .attr("height", 24 + "px")
-  .append("image")
-    .attr("xlink:href","img/info_icon.png")
-    .attr("width", 24 + "px")
-    .attr("height", 24 + "px")
-    .on('mouseover', function(d) {     
-        d3.select(".d3-tip").transition().style("opacity", "1");   
-        tip.show(d);
-        let radarCallback = function(features) {
-          //console.log(features)
-          if(features[0]){
-            let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+      .append("div")
+      .attr("class", "info")
+      .style("height", data_row_size + "px")
+      .style("width", data_row_size + "px")
+    .append("svg")
+      .attr("width", 24 + "px")
+      .attr("height", 24 + "px")
+    .append("image")
+      .attr("xlink:href","img/info_icon.png")
+      .attr("width", 24 + "px")
+      .attr("height", 24 + "px")
+      .on('mouseover', function(d) {     
+          d3.select(".d3-tip").transition().style("opacity", "1");   
+          tip.show(d);
+          let radarCallback = function(features) {
+            //console.log(features)
+            if(features[0]){
+              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+            }
           }
-        }
 
         getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})                   
       })
       .on('mouseout', function(d) {
-        d3.select(".d3-tip").transition().duration(1000).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
+        d3.select(".d3-tip").transition().duration(200/speed).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
         
       });
       /* .on("mouseover", function(d) {		
@@ -1380,8 +1440,8 @@ function updateToplist(newToplist, keys, filter, sortBy){
     
     enterRows.transition("new_rows")
         .ease(d3.easeQuad)
-        .delay(3100)
-        .duration(1000)
+        .delay(600/speed)
+        .duration(200/speed)
         .style('opacity', 1.0)
         .style("left", "0px");
 
@@ -1390,7 +1450,7 @@ function updateToplist(newToplist, keys, filter, sortBy){
         .transition("exit_rows")
         .ease(d3.easeQuad) //"quad" d3.v3
         .delay(0)
-        .duration(1000)
+        .duration(200/speed)
         .style('opacity', 0.0)
         .style("left", "600px")
         .remove();

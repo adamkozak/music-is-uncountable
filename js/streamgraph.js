@@ -4,6 +4,8 @@ let margin = {top: 20, right: 0, bottom: 30, left: 40};
 
 let ratio_width_length = 4.0;
 
+let timelapseSpeeds = [0.1, 0.15, 0.22, 0.3, 0.4, 0.55, 0.75];
+
 function getTranslation(transform) {
   // Create a dummy g for calculation purposes only. This will never
   // be appended to the DOM and will be discarded once this function 
@@ -29,6 +31,9 @@ function stackMax(layer) {
 class StreamGraph {
 
   constructor(width, height, data, svg, listener, colorrange = null, color = "blue") {
+
+    this.speed_idx = 3;
+    this.timelapseSpeed = timelapseSpeeds[this.speed_idx];
 
     this.listener = listener;
 
@@ -236,7 +241,8 @@ class StreamGraph {
       .attr("opacity", 1)
 
     this.fastButton.on("click", function() { 
-      _this.listener.speed(true);
+      _this.speed_idx = Math.min(_this.speed_idx + 1, timelapseSpeeds.length - 1);
+      _this.timelapseSpeed = timelapseSpeeds[_this.speed_idx];
     });
 
     this.slowButton = this.streamGraph.append("image")
@@ -254,7 +260,8 @@ class StreamGraph {
       .attr("opacity", 1)
 
     this.slowButton.on("click", function() { 
-      _this.listener.forward(false);
+      _this.speed_idx = Math.max(_this.speed_idx - 1, 0);
+      _this.timelapseSpeed = timelapseSpeeds[_this.speed_idx];
     });
   }
 
