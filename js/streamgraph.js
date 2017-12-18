@@ -240,9 +240,8 @@ class StreamGraph {
       .attr("x", (this.width - margin.left)/2 + buttonSize)
       .attr("opacity", 1)
 
-    this.fastButton.on("click", function() { 
-      _this.speed_idx = Math.min(_this.speed_idx + 1, timelapseSpeeds.length - 1);
-      _this.timelapseSpeed = timelapseSpeeds[_this.speed_idx];
+    this.fastButton.on("click", function() {
+      _this.changeSpeed(1)
     });
 
     this.slowButton = this.streamGraph.append("image")
@@ -259,10 +258,39 @@ class StreamGraph {
       .attr("x", (this.width - margin.left)/2 - 2 * buttonSize)
       .attr("opacity", 1)
 
-    this.slowButton.on("click", function() { 
-      _this.speed_idx = Math.max(_this.speed_idx - 1, 0);
-      _this.timelapseSpeed = timelapseSpeeds[_this.speed_idx];
+    this.slowButton.on("click", function() {
+      _this.changeSpeed(-1)
     });
+
+
+  }
+
+  changeSpeed(increment) {
+    let buttonSize = this.height/3;
+
+    this.speed_idx = Math.min(this.speed_idx + increment, timelapseSpeeds.length - 1);
+    this.speed_idx = Math.max(this.speed_idx, 0);
+    this.timelapseSpeed = timelapseSpeeds[this.speed_idx];
+
+    let speed = (timelapseSpeeds[this.speed_idx] / timelapseSpeeds[2]).toPrecision(2);
+
+    this.streamGraph.select(".speedtext").remove();
+
+    this.speedText = this.streamGraph.append("text")
+      .attr("class", "speedtext")
+      .attr("x", (this.width - margin.left)/2 + (5*buttonSize)/2)
+      .attr("y", this.height + buttonSize/2)
+      .style("fill", "white")
+      .style("font-size", "18px")
+      .attr("dy", "1em")
+      .attr("opacity", 1)
+      .text("x" + speed); 
+
+    this.speedText
+      .transition()
+      .attr("opacity", 0)
+      .delay(1000)
+      .duration(800);
   }
 
   setData(data) {
