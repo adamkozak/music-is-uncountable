@@ -149,7 +149,9 @@ class WorldMap {
 	    .attr("d", this.path)
 	    //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
 	    .on("click", function(d) {
+			if (mode == 'country' & (d.alpha2 in _this.spotify_dict)){
 	    	_this.zoom(d.alpha2)
+			}
 	    })
 	    .on("mouseover", function(d) {    
 	        countryTooltip.transition()    
