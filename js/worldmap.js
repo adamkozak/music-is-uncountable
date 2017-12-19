@@ -34,8 +34,11 @@ let widthHeightRatio = 8/5.8;
 
 class WorldMap {
 
-	constructor(width, height, svg, continentColorsDict, CountryContinentDict, callback) {
+	constructor(width, height, svg, continentColorsDict, CountryContinentDict, dataReadyCallback, zoomCallback) {
 		let _this = this;
+
+		this.active = null
+		this.zoomCallback = zoomCallback;
 
 		// Load the TopoJSON 
 		d3.json("world-110m.json", function(error, w) {
@@ -69,7 +72,7 @@ class WorldMap {
 	        })
 
 	        _this.drawMap();
-	  			callback();
+	  			dataReadyCallback();
 		    });
 		  });
 		});
@@ -120,6 +123,7 @@ class WorldMap {
 
 		this.height = height;
     this.width = width;
+    
 
   	let scale = width / 6.2
 
@@ -144,6 +148,9 @@ class WorldMap {
 	    .attr("class", "country")
 	    .attr("d", this.path)
 	    //.style("fill", function(d, i) { return color(d.color = d3.max(neighbors[i], function(n) { return countries[n].color; }) + 1 | 0); })
+	    .on("click", function(d) {
+	    	_this.zoom(d.alpha2)
+	    })
 	    .on("mouseover", function(d) {    
 	        countryTooltip.transition()    
 	            .duration(200)    
@@ -223,7 +230,7 @@ class WorldMap {
 	//---------------------------------------
 	// Zoom when country selected in the list 
 	//Zooming function
-	zoom(AlphA, countryButton) {
+	zoom(AlphA) {
 		
 		/*
 		count_list.selectAll("li").style("color","inherit");
@@ -239,11 +246,13 @@ class WorldMap {
 		
 		let final_country = country;
 
-		if (active.node() === countryButton) return this.reset(AlphA);
+		if (this.active == AlphA) return this.reset(AlphA);
+
+		this.zoomCallback(AlphA);
 
 		let delay = 0;
 		
-		if(active.node()) {
+		if(this.active != null) {
 			delay = 1000;
 		}
 
@@ -253,8 +262,7 @@ class WorldMap {
 
 		setTimeout(function() {
 
-			active.classed("active", false);
-			active = d3.select(countryButton).classed("active", true);
+			_this.active = AlphA;
 					
 			
 			//if the country needs a modification for zooming 
@@ -282,29 +290,30 @@ class WorldMap {
 				x_mid = (xmin + xmax) / 2,
 				y_mid = (ymin + ymax) / 2;
 				
-				let scale = 0.9 / Math.max(dx / width, dy / height),
-				translate = [width / 2 - scale * x_mid, height / 2 - scale * y_mid];
-				
-			  worldMap.map.transition()
-				  .duration(1000)
-				  .ease(d3.easeExp)
-				  .style("stroke-width", 1.5 / scale + "px")
-				  .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
+			let scale = 0.9 / Math.max(dx / width, dy / height),
+			translate = [width / 2 - scale * x_mid, height / 2 - scale * y_mid];
+			
+		  worldMap.map.transition()
+			  .duration(1000)
+			  .ease(d3.easeExp)
+			  .style("stroke-width", 1.5 / scale + "px")
+			  .attr("transform", "translate(" + translate + ")scale(" + scale + ")");
 
-			  //this.map.selectAll(".boundary").remove()
+		  //this.map.selectAll(".boundary").remove()
 
-			  let strokeWidth = (_this.width/8000.0) 
+		  let strokeWidth = (_this.width/8000.0) 
 
-			  _this.map.selectAll(".boundary")
-			  	.transition()
-			    .duration(1000)
-			    .style("stroke-width", strokeWidth + "px")
+		  _this.map.selectAll(".boundary")
+		  	.transition()
+		    .duration(1000)
+		    .style("stroke-width", strokeWidth + "px")
 		}, delay)
 
 	}
 		 
 	// Function that resets the properties of the country and dezooms when re-clicked
 	reset(a) {
+		console.log("reset")
 
 		let strokeWidth = (this.width/2000.0) 
 
@@ -313,14 +322,15 @@ class WorldMap {
 	    .duration(1000)
 	    .style("stroke-width", strokeWidth + "px")
 	
-			active.classed("active", false);
-			active = d3.select(null);
 
 	  worldMap.map.transition()
 		  .duration(750)
 		  .style("stroke-width", "1.5px")
 		  .style("fill", "red")
 		  .attr("transform", "");
+
+
+		this.active = null;
 		
 		//count_list.select("#"+a).style("color", "inherit");
 		  

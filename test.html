@@ -508,7 +508,16 @@ let worldDataReadyCallback = function() {
   setCountriesList();
 }
 
-let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict, worldDataReadyCallback);
+
+let zoomCallback = function(alpha) {
+  let countryInfoCallback = function(timeLine) {
+
+  }
+
+  getAllDocuments(db.collection('entries'), {"r":alpha}, countryInfoCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
+}
+
+let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict, worldDataReadyCallback, zoomCallback);
 
 let streamPage = d3.select("#right").append("div")
   .attr("class", "table-container")
@@ -889,7 +898,6 @@ let mc = autocomplete(document.getElementById('autocomplete'))
 
 client.login().then(() => getAllDocuments(db.collection('songs'), {}, songListCallback, [], {_id: 0, id: 1, "Track Name": 1, "Artist": 1}))
 
-let active = d3.select(null);  
 let count_par;
 let count_list;
 
@@ -934,7 +942,7 @@ function setCountriesList() {
     .on("mouseout", function() { d3.select("#"+AlphA).style("font-weight", "inherit")})
     .on("click", function() {
       let AlphA = d3.select(this).attr('id');
-      worldMap.zoom(AlphA, this);
+      worldMap.zoom(AlphA);
     });
   });
   
@@ -1370,6 +1378,10 @@ function updateToplist(speed, newToplist, keys, filter, sortBy){
     });
 
     newToplist = newToplist.slice(0,15);
+
+    newToplist = newToplist.map(function(d, i) {
+      d["value"] = i;
+    })
 
     //console.log(newToplist);
 
