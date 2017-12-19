@@ -924,7 +924,7 @@ function setCountriesList() {
 
   //Append countries in the list
   for(let i = 0; i < ordered_countries.length; i++) {
-    count_list.append("li").attr("class","country_list").attr("id", ordered_countries[i]["alpha2"])
+    count_list.append("li").attr("class","country_list").attr("id", ordered_countries[i]["alpha2"]).style("list-style-type", "none")
     .text(ordered_countries[i].name);
   }
 
@@ -943,6 +943,7 @@ function setCountriesList() {
     .on("click", function() {
       let AlphA = d3.select(this).attr('id');
       worldMap.zoom(AlphA);
+	    worldMap.show_image('https://i.scdn.co/image/d0186ad64df7d6fc5f65c20c7d16f4279ffeb815');
     });
   });
   
@@ -950,7 +951,12 @@ function setCountriesList() {
 
 // Nathalie's code -----------------------------------
 // Creates the tabs and selections 
+let mode = 'song';
 function Open(evt, Selection) {
+	
+	if (Selection === 'Countries') { mode = 'country'; }
+	else { mode = 'song'}
+
 	
 	d3.selectAll(".tablinks").style("background-color" , "#eee"); 
 	d3.selectAll("#btn"+Selection).style("background-color" , "#ccc"); 

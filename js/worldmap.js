@@ -226,12 +226,41 @@ class WorldMap {
 	      }
 	    })
 	}
+	
+	
+	show_image (url){
+	
+		
+		//creer l'image	
+	let image = new Image ();
+	image.src = url;
+	
+	let canevas= this.map
+		.append("canvas")
+		//.attr("x", 50)
+		//.attr("y", 50)
+		.attr("width", 130)
+		.attr("height" , 130)
+		.style('border-radius', '50%');
+	
 
+	let context = canevas.node().getContext("2d");
+		//fonction qui telecharge l'image
+	image.onload = function() {
+	
+		// dessine l'image dans le contexte du canevas
+		context.drawImage (image, x = 0, y = 0, width = 130, height = 130)
+			
+	
+	}
+	}
+	
+	
 	//---------------------------------------
 	// Zoom when country selected in the list 
 	//Zooming function
 	zoom(AlphA) {
-		
+
 		/*
 		count_list.selectAll("li").style("color","inherit");
 		count_list.select("#"+AlphA).style("color", "DarkSeaGreen");
