@@ -510,16 +510,36 @@ let worldDataReadyCallback = function() {
 
 let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict, worldDataReadyCallback);
 
+let streamPage = d3.select("#right").append("div")
+  .attr("class", "table-container")
+  .style("width", "calc(35vw - 46px)")
+  .style("height", "30%")
+
+
+streamPage
+    .style("bottom", 0 + "px")
+    .style("right", 36 + "px")
+
 
 let rankPage = d3.select("#right").append("div")
     .attr("class", "table-container")
     .style("align-items", "center")
     .style("margin-left", "10px")
     .style("width", "calc(35vw - 46px)")
-    .style("height", 100 + "vh")
+    .style("height", "70%")
+
+let svgStreamGraph = streamPage.append("svg")
+
+svgStreamGraph
+  .attr("width","100%")
+  .attr("height", "100%")
+
+  /*
+svgStreamGraph
+    .attr("transform", "translate(" + 0 + "," + (7*svgStreamGraph.height()/10)+ ")");*/
 
 let topListText = rankPage.append("h2")
-  .text("aaa")
+  .text("")
   .style("margin", "10px")
   .style("width", "calc(100% - 36px)")
   .style("text-align", "center")
@@ -617,10 +637,19 @@ function streamGraphTransition(delay) {
   if(streamGraph) {   
     if(navigationMap) {
       */
+
+/*
       streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + (width-(streamGraph.streamGraph.node().getBoundingClientRect().width - 10)) + "," + (height /*- navigation.node().getBoundingClientRect().height*/ - streamGraph.streamGraph.node().getBoundingClientRect().height) + ")")
+        .attr("transform", "translate(" + (width-(streamGraph.streamGraph.node().getBoundingClientRect().width - 10)) + "," + (height  - streamGraph.streamGraph.node().getBoundingClientRect().height) + ")")
+        .duration(delay) 
+        .delay(0)  */ 
+
+
+      streamGraph.streamGraph.transition()
+        .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  svgStreamGraph.node().getBoundingClientRect().height/5 + ")")
         .duration(delay) 
         .delay(0)   
+
   /*  }
     else {   
       streamGraph.streamGraph.transition()
@@ -802,7 +831,7 @@ let mc = autocomplete(document.getElementById('autocomplete'))
         });
 
         topListText
-          .text(selectedSong.name + " by " + selectedSong.artist + " - Streams ranking per countries")
+          .text(selectedSong.name + " by " + selectedSong.artist)
 
         let topListData = getSongYearlyTopListData(timelapseData);
 
@@ -831,9 +860,13 @@ let mc = autocomplete(document.getElementById('autocomplete'))
             }
           }
 
-          streamGraph = new StreamGraph(width/2, height/7, streamData, svg, streamGraphListener, continentColors, null)
+          //streamGraph = new StreamGraph(width/2, height/7, streamData, svgStreamGraph, streamGraphListener, continentColors, null)
+          streamGraph = new StreamGraph(7*svgStreamGraph.node().getBoundingClientRect().width/10, 7*svgStreamGraph.node().getBoundingClientRect().height / 10, streamData, svgStreamGraph, streamGraphListener, continentColors, null)
+          /*
           streamGraph.streamGraph 
-            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height /*- navigation.node().getBoundingClientRect().height*/ - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")
+            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height  - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")*/
+          streamGraph.streamGraph
+            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + ", 0)")
 
           streamGraphTransition(1000);
 
@@ -841,8 +874,9 @@ let mc = autocomplete(document.getElementById('autocomplete'))
 
         //alet legend = setRankLegend(width/30, height/2, [colorScale], svg);
         let legend = setRankLegend(width/20, height/3, colorScales, svg);
+
         legend
-          .attr("transform", "translate(" + 10 + ", " + (height/2 - legend.node().getBoundingClientRect().height/2) + ")")
+          .attr("transform", "translate(" + 10 + ", " + (3*height/4 - legend.node().getBoundingClientRect().height/2) + ")")
 
         //resize();
       }
@@ -1022,7 +1056,9 @@ function resize() {
 
   if(streamGraph) {
     //streamGraph.resize(width/2, height/6)
-    streamGraph.resize(width/2, height/7)
+
+    //streamGraph.resize(width/2, height/7)
+    streamGraph.resize(7*svgStreamGraph.node().getBoundingClientRect().width/10, 7*svgStreamGraph.node().getBoundingClientRect().height/10)
     streamGraphTransition(0);
   }
 }
@@ -1112,7 +1148,7 @@ function createToplist(toplistData, keys, filter, sortBy){
         return 0;
     });
 
-    toplistData = toplistData.slice(0,20);
+    toplistData = toplistData.slice(0,15);
 
     //console.log(JSON.stringify(toplistData));
 
@@ -1324,6 +1360,7 @@ function getSongYearlyTopListData(data) {
 }
 
 function updateToplist(speed, newToplist, keys, filter, sortBy){ 
+    speed = Math.max(speed, 0.35)
 
     newToplist = newToplist.sort(function(a, b){
       if(+a[sortBy] < +b[sortBy]) return 1;
@@ -1331,8 +1368,7 @@ function updateToplist(speed, newToplist, keys, filter, sortBy){
       return 0;
     });
 
-    newToplist = newToplist.slice(0,20);
-
+    newToplist = newToplist.slice(0,15);
 
     //console.log(newToplist);
 

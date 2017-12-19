@@ -89,7 +89,7 @@ class WorldMap {
 		this.projection = d3.geoMercator()/*d3.geoNaturalEarth1()*//*d3.geoConicConformal()*//*d3.geoEquirectangular() */
 		    .scale(scale)
 		    //.clipExtent([width/2, height/2])
-		    .translate([width / 2, height / 2])
+		    .translate([width / 2, height / 1.8])
 		    .precision(10000);
 
 		this.path = d3.geoPath()
@@ -126,7 +126,7 @@ class WorldMap {
 	  this.projection
 	    .scale(scale)
 	    //.clipExtent([width/2, height/2])
-	    .translate([width / 2, height / 2.2])
+	    .translate([width / 2, height / 1.8])
 
 	  d3.selectAll("path").filter(".country")
 	    .attr('d', this.path);

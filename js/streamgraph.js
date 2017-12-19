@@ -4,7 +4,7 @@ let margin = {top: 20, right: 0, bottom: 30, left: 40};
 
 let ratio_width_length = 4.0;
 
-let timelapseSpeeds = [0.1, 0.15, 0.22, 0.3, 0.4, 0.55, 0.75];
+let timelapseSpeeds = [0.1, 0.15, 0.225, 0.3, 0.45, 0.6, 0.9, 1.2];
 
 function getTranslation(transform) {
   // Create a dummy g for calculation purposes only. This will never
@@ -272,7 +272,7 @@ class StreamGraph {
     this.speed_idx = Math.max(this.speed_idx, 0);
     this.timelapseSpeed = timelapseSpeeds[this.speed_idx];
 
-    let speed = (timelapseSpeeds[this.speed_idx] / timelapseSpeeds[2]).toPrecision(2);
+    let speed = (timelapseSpeeds[this.speed_idx] / timelapseSpeeds[3]).toPrecision(2);
 
     this.streamGraph.select(".speedtext").remove();
 
@@ -294,6 +294,7 @@ class StreamGraph {
   }
 
   setData(data) {
+    this.setTimeStamp(0);
     this.createLayers(data);
     this.changeGraph();
     this.applyNewData();
