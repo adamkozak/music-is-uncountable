@@ -1339,6 +1339,7 @@ function updateToplist(speed, newToplist, keys, filter, sortBy){
 
     newToplist = newToplist.map(function(d, i) {
       d["value"] = i;
+      return d;
     })
 
     //console.log(newToplist);
