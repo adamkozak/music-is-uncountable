@@ -504,8 +504,11 @@ let svg = d3.select("#left").append("svg")
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
 
+
+
 let worldDataReadyCallback = function() {
   setCountriesList();
+
 }
 
 
@@ -943,10 +946,54 @@ function setCountriesList() {
     .on("click", function() {
       let AlphA = d3.select(this).attr('id');
       worldMap.zoom(AlphA);
-	    worldMap.show_image('https://i.scdn.co/image/d0186ad64df7d6fc5f65c20c7d16f4279ffeb815');
+	    //show_image('https://i.scdn.co/image/d0186ad64df7d6fc5f65c20c7d16f4279ffeb815');
     });
   });
   
+}
+
+  
+let div = null;
+
+let show_image = function(url) {
+
+  console.log("sdfafdsa")
+
+  d3.selectAll(".image-container").remove();
+
+  setTimeout(function() {
+    console.log("skafél")
+
+    div = d3.select("#left").append("div")
+      .attr("class", "image-container")
+      .style("top", ((height-130)/2) + "px")
+      .style("left", ((width-130)/2) + "px")
+      .style("position", "absolute")
+      .style("width", "130px")
+      .style("height", "130px");
+
+    console.log(height)
+    console.log(width)
+
+    let canvas = div
+      .append("canvas")
+      .attr("width", 130)
+      .attr("height" , 130)
+      .style('border-radius', '50%');
+
+      //creer l'image 
+      let image = new Image ();
+      image.src = url;
+
+      let context = canvas.node().getContext("2d");
+        //fonction qui telecharge l'image
+      image.onload = function() {
+        // dessine l'image dans le contexte du canevas
+        context.drawImage (image, 0, 0, 130, 130)          
+      }
+
+    }, 1000);
+
 }
 
 // Nathalie's code -----------------------------------
@@ -1076,7 +1123,13 @@ function resize() {
     streamGraph.resize(7*svgStreamGraph.node().getBoundingClientRect().width/10, 7*svgStreamGraph.node().getBoundingClientRect().height/10)
     streamGraphTransition(0);
   }
-}
+
+  if(div) {
+    div
+      .style("top", ((height-130)/2) + "px")
+      .style("left", ((width-130)/2) + "px")
+  }
+} 
 
 window.addEventListener("resize", resize);
 
