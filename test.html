@@ -514,10 +514,10 @@ let worldDataReadyCallback = function() {
 
 let zoomCallback = function(alpha) {
   let countryInfoCallback = function(timeLine) {
-
+    console.log(timeLine);
   }
 
-  getAllDocuments(db.collection('entries'), {"r":alpha}, countryInfoCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
+  getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":21}}, countryInfoCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
 }
 
 let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict, worldDataReadyCallback, zoomCallback);
@@ -562,114 +562,13 @@ let topListText = rankPage.append("h2")
 rankPage
     .style("top", 0 + "px")
     .style("right", 36 + "px")
-/*
-    .attr("class", "node")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("x", 0)
-    .attr("y", 0)
-    .style("width", width + "px")
-    .style("height", height + "px");*/
 
-/*
-let navigationMap = true;
-
-
-let navigation = svg.append("image")
-    .attr("xlink:href","img/semi.svg")
-    .attr("width", width/15)
-    .attr("height", width/30)
-
-navigation
-  .attr("transform", "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ")");
-
-
-
-function getNavigationTransform() {
-    if(navigationMap) {
-      return "translate(" + ((width/2)-(navigation.node().getBoundingClientRect().width / 2)) + "," + (height - navigation.node().getBoundingClientRect().height) + ") rotate(0)";
-    } else {
-      return "translate(" + ((width/2)+(navigation.node().getBoundingClientRect().width / 2)) + "," +  navigation.node().getBoundingClientRect().height + ") rotate(180)"
-    }
-}
-
-navigation.on("click", function() {
-
-    if(navigationMap) { 
-
-      navigationMap = false
-
-      navigation.transition()
-        .attr("transform", getNavigationTransform())
-        .duration(1000) 
-        .delay(0)    
-
-      worldMap.map.transition()
-        .attr("transform", "translate(0, " + (-height) + ")")
-        .duration(1000) 
-        .delay(0)    
-
-        let streamGraph_height = 50;
-
-        if(streamGraph) {
-            streamGraph_height = streamGraph.streamGraph.node().getBoundingClientRect().height;
-        }
-
-      rankPage.transition()
-        .style("top", (navigation.node().getBoundingClientRect().height + streamGraph_height + 20) + "px")
-        .duration(1000) 
-        .delay(0)    
-
-    } 
-    else {
-      navigationMap = true
-
-      navigation.transition()        
-        .attr("transform", getNavigationTransform())
-        .duration(1200) 
-        .delay(0)   
-
-      worldMap.map.transition()
-        .attr("transform", "translate(0, " + 0 + ")")
-        .duration(1200) 
-        .delay(0)     
-
-      rankPage.transition()
-        .style("top", (height + 10) + "px")
-        .duration(1000) 
-        .delay(0)   
-    }
-
-
-    streamGraphTransition(1000);
-  })
-*/
 function streamGraphTransition(delay) {
-/*
-  if(streamGraph) {   
-    if(navigationMap) {
-      */
-
-/*
-      streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + (width-(streamGraph.streamGraph.node().getBoundingClientRect().width - 10)) + "," + (height  - streamGraph.streamGraph.node().getBoundingClientRect().height) + ")")
-        .duration(delay) 
-        .delay(0)  */ 
-
 
       streamGraph.streamGraph.transition()
         .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  svgStreamGraph.node().getBoundingClientRect().height/5 + ")")
         .duration(delay) 
         .delay(0)   
-
-  /*  }
-    else {   
-      streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + (width-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (navigation.node().getBoundingClientRect().height + 10) + ")")
-        .duration(delay) 
-        .delay(0)   
-    }
-  }*/
 }
 
 
