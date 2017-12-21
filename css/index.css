@@ -35,8 +35,14 @@ ul li{
   float:left;
   display:inline;
 }
+
 #double li  { width:50%;}
 
+#single li  {
+  width:80%;
+  padding-top: 15px;
+  margin-left: 10%;
+}
 
 
 

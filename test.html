@@ -14,7 +14,7 @@
 
 
 <body style="margin: 0; background: #222222">
-  <nav class="main-menu" style="width: 400px; right:0;background-color: rgb(66, 66, 66);">
+  <nav class="main-menu" style="min-width: 400px; width: 35vw; right:0;background-color: rgb(66, 66, 66);">
     <div class="menu-content">
       <div class="tabsel" style = "height:10vh;">
         <button id = "btnSongs" class="tablinks" onclick="Open(event, 'Songs')" style = "height:10vh; width: 50%;">Songs</button>
@@ -22,12 +22,14 @@
       </div>
 
       <div id="Songs" class="tabcontent" style = "height:90vh;">
-        <h3>Search and select a song !</h3>
-        <div id="autocomplete"></div>
-        <!--
-        <input id="song_input" hidden="true" class="awesomplete"/> -->
-        <button id="go_button" hidden="true">Show infos</button>
-        <p>  </p>
+        <h3 style="margin-bottom: 0px; -webkit-margin-after: 0">Search for a song or chose one of the trending song from the list below.</h3>
+        <div style="height: 80px">
+          <div id="autocomplete"></div>
+        </div>
+        <div>
+          <h2 style="width: 100%; text-align: center">Trending songs</h2>
+          <div id="popular_songs"></div>
+        </div>
       </div>
 
       <div id="Countries" class="tabcontent" style = "height:90vh;  overflow:scroll;">
@@ -80,20 +82,43 @@ let height = window.innerHeight ;
 let menu = d3.select(".main-menu")
 let menuContent = d3.select(".menu-content")
 
-menu.on("mouseenter", function(d) {
+let open = true;
+
+function closeMenu() {
+  open = false;
+  menuContent.style("display", "none")
+  menu.transition()
+    .duration(250)
+    .style("width", "36px")
+    .style("min-width", "36px")
+}
+
+function openMenu() {
+  if(!open)
+  {
+    open = true;
     menu.transition()
       .duration(400)
-      .style("width", "400px")
-    menuContent
-      .style("display", "initial")
-  })
+      .style("min-width", "400px")
+      .style("width", "35vw")
+    setTimeout(function() {
+      if(open) {    
+        menuContent
+          .style("display", "initial")
+      }
+    }, 200)
+  }
+}
+
+menu.on("mouseenter", function(d) {
+  openMenu();
+})
 
 menu.on("mouseleave", function(d) {
-    menuContent.style("display", "none")
-    menu.transition()
-      .duration(250)
-      .style("width", "36px")
-  })
+  closeMenu();
+})
+
+
 
 
 /*
@@ -195,13 +220,14 @@ let worldDataReadyCallback = function() {
 }
 
 let zoomCallback = function(alpha) {
+  show_image(null);
   let countryInfoCallback = function(timeLine) {
     data = timeLine.map(function(x) {
       return {
         "value": parseInt(x.s),
         "id": x.id,
         "artist": x.a,
-        "song": x.n,
+        "song": removeParentheses(x.n),
         "position": x.p,
         "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
       }
@@ -253,33 +279,31 @@ let zoomCallback = function(alpha) {
     console.log(streamData)
 
     if(streamGraph) {
-      streamGraph.setData(streamData);
+      streamGraph.remove();
 
       //streamGraphTransition(1000);
       //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
     }
-    else {
-      streamGraphListener = {
-        buttonPressed(playing) {
-          if(playing) {
-            startCountryTimeLapse(timelapseData)
 
-          } else {
+    streamGraphListener = {
+      buttonPressed(playing, week) {
+        if(playing) {
+          startCountryTimeLapse(timelapseData, week)
+        } else {
 
-          }
         }
       }
-
-      let rightWidth = rightDiv.clientWidth;
-      streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, ["#A2A2A2"], null, ["Streams"])
-
-      resize();
-      streamGraph.streamGraph
-        .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + ", 0)")
-
-      streamGraphTransition(1000);
-
     }
+
+    let rightWidth = rightDiv.clientWidth;
+    streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, ["#A2A2A2"], null, ["Streams"])
+
+    streamGraph.streamGraph      
+      .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  (svgStreamGraph.node().getBoundingClientRect().height/5 + 300) + ")")
+
+    resize();
+
+    streamGraphTransition(1000); 
     
   }
 
@@ -321,6 +345,7 @@ let topListText = rankPage.append("h2")
   .style("width", "calc(35vw - 36px)")
   .style("text-align", "center")
   .style("color", "white")
+
 
 rankPage
     .style("top", 0 + "px")
@@ -378,182 +403,152 @@ let getAllDocuments = function(collection, query, callback, documents, projectio
 
 let songListCallback = function(list) {
   // Map songs to label and value to be displayed in the autocomplete input
-  songsList = list.map(function(x) {
-    return {
-      label: x["Track Name"] + " - " + x["Artist"], 
-      value: { text: x["Track Name"], id: x["id"] }
-    }
-  });
+  list = list.map(x => {
+    let y = {}
+    y["text"] = removeParentheses(x["Track Name"]) + " - " + x["Artist"]
+    y["id"] = x.id
+    y["name"] = x["Track Name"]
+    y["artist"] = x["Artist"]
+    return y;
+  })
 
-
-/*
-
-  // Set the autocomplete input
-  let input = document.getElementById("song_input");
-  new Awesomplete(input, {
-    list: songsList, 
-    replace: function(item) {
-      selectedSongID = item.value.id;
-      this.input.value = item.value.text;
-    }
-  });
-
-
-  // Display the autocomplete input
-  input.hidden = false;
-*/
-
-  //Variable to hold autocomplete options
-
-
-list = list.map(x => {
-  let y = {}
-  y["text"] = x["Track Name"] + " - " + x["Artist"]
-  y["id"] = x.id
-  y["name"] = x["Track Name"]
-  y["artist"] = x["Artist"]
-  return y;
-})
-
-let mc = autocomplete(document.getElementById('autocomplete'))
-        .keys(list)
-        .dataField("text")
-        .placeHolder("Search for song or artist")
-        .width(960)
-        .height(500)
-        .onSelected(onSelect)
-        .render();
+  let mc = autocomplete(document.getElementById('autocomplete'))
+    .keys(list)
+    .dataField("text")
+    .placeHolder("Search for song or artist")
+    .width(960)
+    .height(200)
+    .onSelected(onSelect)
+    .render();
 
   //Call back for when user selects an option
   function onSelect(d) {
     selectedSong = d;
     console.log(d.id)
+    showSongInfo(selectedSong)
   }
+}
 
-  let button = document.getElementById("go_button");
-  button.hidden = false;
-  button.onclick = function() {    
-    if(selectedSong && worldMap.spotify_countries) {
-      let songEntriesCallback = function(timeLine) {
-        timeLine = timeLine.filter(x => x.r != 'global')
+function showSongInfo(selectedSong) {    
+  if(selectedSong && worldMap.spotify_countries) {
+    closeMenu();
 
-        worldMap.spotify_countries.forEach(function(d, i) {
-          let filtered = timeLine.filter(x => d == x.r);
-          let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
-              return a + v;
-          }, 0)
-          streamsDict[d] = aggregation;
-        })
+    let songEntriesCallback = function(timeLine) {
 
-        data = timeLine.map(function(x) {
-          let region = "Unknown"
-          if(x.r in CountryContinentDict) {
-            continent = CountryContinentDict[x.r]
-          }
-          else {
-            console.log("Problem with" + x.r)
-          }
-          return {
-            "value": parseInt(x.s),
-            "continent": continent,
-            "region": x.r,
-            "position": x.p,
-            "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
-          }
-        });
+      timeLine = timeLine.filter(x => x.r != 'global')
 
-        
-        datesArray = [];
+      worldMap.spotify_countries.forEach(function(d, i) {
+        let filtered = timeLine.filter(x => d == x.r);
+        let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
+            return a + v;
+        }, 0)
+        streamsDict[d] = aggregation;
+      })
 
-        for(let i = 1; i < 34; i++) {
-          let d = new Date(lowestDate.getTime());
-          d.setDate(d.getDate() + i*7);
-          datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
-        }
-
-        timelapseData = []
-        for(let j = 0; j < datesArray.length; j++) {
-          timelapseData.push({"date": datesArray[j]})
-        }
-
-        for(let i = 0; i < data.length; i++) {
-          let dateIdx = datesArray.indexOf(data[i].date)
-          if(dateIdx > -1) {
-            timelapseData[dateIdx][data[i].region] = data[i];
-          }
-        }
-
-        let streamData = []
-        for(let j = 0; j < datesArray.length; j++) {
-          streamData.push({"date": datesArray[j]})
-          for(let i = 0; i < continents.length; i++) {
-            streamData[j][continents[i]] = 0
-          }
-        }
-
-        for(let i = 0; i < data.length; i++) {
-          let dateIdx = datesArray.indexOf(data[i].date)
-          if(dateIdx > -1) {
-            let region = data[i].continent
-            streamData[dateIdx][region] += data[i].value
-          }
-        }
-
-        let format = d3.timeParse("%Y/%m/%d");
-
-        streamData.forEach(function(d) {
-          d.date = format(d.date);
-        });
-
-        topListText
-          .text(selectedSong.name + " by " + selectedSong.artist)
-
-        let topListData = getSongYearlyTopListData(timelapseData);
-
-        createToplist(topListData, {"country": "Country", "formatted_streams": "Streams"}, ({country, formatted_streams, position}) => ({country, formatted_streams}), "streams", false);
-
-
-        console.log(streamData)
-        if(streamGraph) {
-          streamGraph.setData(streamData);
-
-          //streamGraphTransition(1000);
-          //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
+      data = timeLine.map(function(x) {
+        let region = "Unknown"
+        if(x.r in CountryContinentDict) {
+          continent = CountryContinentDict[x.r]
         }
         else {
-          streamGraphListener = {
-            buttonPressed(playing) {
-              if(playing) {
-                //console.log(JSON.stringify(timelapseData))
-                let topListData = getSongTopListData(timelapseData[0]);
-
-                createToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
-                startSongTimeLapse(timelapseData);
-              } else {
-                //stopSongTimeLapse();
-                streamGraph.pause();
-              }
-            }
-          }
-
-          let rightWidth = rightDiv.clientWidth;
-
-          streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, continentColors, null, continents)
-
-          streamGraph.streamGraph
-            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + ", 0)")
-
-          streamGraphTransition(1000);
+          console.log("Problem with" + x.r)
         }
+        return {
+          "value": parseInt(x.s),
+          "continent": continent,
+          "region": x.r,
+          "position": x.p,
+          "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
+        }
+      });
 
-        let legend = setRankLegend(width/20, height/3, colorScales, svg);
+      
+      datesArray = [];
 
-        legend
-          .attr("transform", "translate(" + 10 + ", " + (3*height/4 - legend.node().getBoundingClientRect().height/2) + ")")
+      for(let i = 1; i < 34; i++) {
+        let d = new Date(lowestDate.getTime());
+        d.setDate(d.getDate() + i*7);
+        datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
       }
 
-      getAllDocuments(db.collection('entries'), {"id":selectedSong.id}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
+      timelapseData = []
+      for(let j = 0; j < datesArray.length; j++) {
+        timelapseData.push({"date": datesArray[j]})
+      }
+
+      for(let i = 0; i < data.length; i++) {
+        let dateIdx = datesArray.indexOf(data[i].date)
+        if(dateIdx > -1) {
+          timelapseData[dateIdx][data[i].region] = data[i];
+        }
+      }
+
+      let streamData = []
+      for(let j = 0; j < datesArray.length; j++) {
+        streamData.push({"date": datesArray[j]})
+        for(let i = 0; i < continents.length; i++) {
+          streamData[j][continents[i]] = 0
+        }
+      }
+
+      for(let i = 0; i < data.length; i++) {
+        let dateIdx = datesArray.indexOf(data[i].date)
+        if(dateIdx > -1) {
+          let region = data[i].continent
+          streamData[dateIdx][region] += data[i].value
+        }
+      }
+
+      let format = d3.timeParse("%Y/%m/%d");
+
+      streamData.forEach(function(d) {
+        d.date = format(d.date);
+      });
+
+      topListText
+        .text(selectedSong.name + " by " + selectedSong.artist)
+
+      let topListData = getSongYearlyTopListData(timelapseData);
+
+      createToplist(topListData, {"country": "Country", "formatted_streams": "Streams"}, ({country, formatted_streams, position}) => ({country, formatted_streams}), "streams", false);
+
+
+      console.log(streamData)
+      if(streamGraph) {
+        streamGraph.remove();
+      }
+
+      
+      streamGraphListener = {
+        buttonPressed(playing, week) {
+          if(playing) {
+            //console.log(JSON.stringify(timelapseData))
+
+            startSongTimeLapse(timelapseData, week);
+          } else {
+            //stopSongTimeLapse();
+            streamGraph.pause();
+          }
+        }
+      }
+
+      let rightWidth = rightDiv.clientWidth;
+
+      streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, continentColors, null, continents)
+
+      streamGraph.streamGraph      
+        .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  (svgStreamGraph.node().getBoundingClientRect().height/5 + 300) + ")")
+
+      streamGraphTransition(1000);
+    
+
+      let legend = setRankLegend(width/20, height/3, colorScales, svg);
+
+      legend
+        .attr("transform", "translate(" + 10 + ", " + (3*height/4 - legend.node().getBoundingClientRect().height/2) + ")")
     }
+
+    getAllDocuments(db.collection('entries'), {"id":selectedSong.id}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
   }
 }
 
@@ -565,6 +560,7 @@ let count_list;
 function setCountriesList() {
   
   count_par = d3.select("#Countries").select('p');
+
   count_list = count_par.append("ul").attr('id','double');
 
   let ordered_countries = []
@@ -592,6 +588,7 @@ function setCountriesList() {
 
   //d3.select("#Countries").style("overflow","scroll");
   d3.select("#Countries").style("overflow","scroll");
+  d3.select("#Songs").style("overflow","auto");
 
   // 
   let songs_par = d3.select("#Songs").select('p');
@@ -605,6 +602,7 @@ function setCountriesList() {
     .on("click", function() {
       let AlphA = d3.select(this).attr('id');
       worldMap.zoom(AlphA);
+      closeMenu();
     });
   });
   
@@ -656,7 +654,7 @@ let show_image = function(url) {
 
         function clipArc(ctx, x, y, r, f) {
             canvas.transition()
-              .duration(300)
+              .duration(400)
               .style("opacity", 1);
 
             ctx.globalCompositeOperation = 'destination-in';
@@ -676,13 +674,73 @@ let show_image = function(url) {
 
 }
 
-// Nathalie's code -----------------------------------
+function removeParentheses(text) {
+  try {
+    text = text.replace(/ *\([^)]*\) */g, "");
+    text = text.replace(/ *\[[^)]*\] */g, "");
+  }
+  catch(error) {
+  }
+  return text;
+}
+
+function setExampleSongs() {
+  songs_ids = [
+    "7qiZfU4dY1lWllzX7mPBI3", 
+    "7KXjTSCq5nL1LoYtL7XAwS",
+    "72jbDTw1piOOj770jWNeaG",
+    "0KKkJNfGyhkQ5aFogxQAPU",
+    "3rOSwuTsUlJp0Pu0MkN8r8",
+    "6kex4EBAj0WHXDKZMEJaaF",
+    "4aWmUDTfIPGksMNLV2rQP2",
+    "4Km5HrUvYTaSUfiSGPJeQR",
+    "3umS4y3uQDkqekNjVpiRUs",
+    "2kVHAQKVtczchKctctzbtK"
+  ];
+
+  let songs_div = d3.select("#popular_songs");
+  songs_list = songs_div.append("ul")
+    .attr('id','single');
+
+  for(let i = 0; i < songs_ids.length; i++) {
+    id = songs_ids[i];
+
+    let songCallback = function(data) {
+      if(data[0]) {
+        let song = data[0];
+        let li = songs_list.append("li")
+          .attr("class","country_list")
+          .attr("id", song.id)
+          .append('a').attr('href', '#')
+          .text(removeParentheses(song["Track Name"]) + " by " + song["Artist"])
+
+        li
+          .on("mouseover", function() { li.style("font-weight", "bold")})
+          .on("mouseout", function() { li.style("font-weight", "inherit")})
+          .on("click", function() {
+            console.log(song.id)
+            song["name"] = removeParentheses(song["Track Name"])
+            song["artist"] = song["Artist"]
+            showSongInfo(song)
+          });
+      }
+    }
+    getAllDocuments(db.collection('songs'), {"id":id}, songCallback, [], {_id: 0, "id": 1, "Track Name": 1, "Artist": 1})
+
+
+  }
+}
+
+setExampleSongs();
+
 // Creates the tabs and selections 
 let mode = 'song';
 function Open(evt, Selection) {
 	
 	if (Selection === 'Countries') { 
     if(mode != 'country') {
+      removeTopList();
+      topListText.text("")
       worldMap.drawMap()
       if(streamGraph) {
         streamGraph.remove();
@@ -693,6 +751,8 @@ function Open(evt, Selection) {
   }
 	else { 
     if(mode != 'song') {
+      removeTopList();
+      topListText.text("")
       show_image(null);
       if(streamGraph) {
         streamGraph.remove();
@@ -731,10 +791,15 @@ function Open(evt, Selection) {
 
 //End of Nathalie's code----------------------------------------------------------------------------
 
-function startSongTimeLapse(data) {
+function startSongTimeLapse(data, week) {
 
-  let it = 0;
-  let week = 0;
+  let it = week * 20;
+  week = Math.floor(week);
+
+  let topListData = getSongTopListData(timelapseData[week]);
+
+  createToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
+
 
   if(data[week] == undefined) {
     console.log(data)
@@ -792,10 +857,29 @@ function startSongTimeLapse(data) {
   setNextTimeLapse();
 }
 
-function startCountryTimeLapse(data) {
+function displayTopArtistImage(id) {
+  let imageCallback = function(data) {
+    console.log(data[0].image);
+    show_image(data[0].image)
+  }
+  getAllDocuments(db.collection('songs'), {"id":id}, imageCallback, [], {_id: 0, "image": 1})
+}
 
-  let it = 0;
-  let week = 0;
+function startCountryTimeLapse(data, week) {
+
+  let it = week * 20;
+  week = Math.floor(week);
+
+  let speed = streamGraph.timelapseSpeed;
+
+  console.log(week)
+  console.log(data)
+  let topListData = getCountryTopListData(data[week]);
+  console.log(topListData)
+
+  updateToplist(speed, topListData, {"c_position": "#", "c_song": "Song", "c_formatted_streams": "Streams"}, ({c_position, c_song, c_formatted_streams}) => ({c_position, c_song, c_formatted_streams}), "streams", true);
+
+  displayTopArtistImage(topListData[0].id)
 
   if(data[week] == undefined) {
     console.log(data)
@@ -810,7 +894,6 @@ function startCountryTimeLapse(data) {
         setNextTimeLapse();
       }
 
-        
       streamGraph.setTimeStamp(it/20.0);
       if(it%20 == 0) {
 
@@ -820,16 +903,11 @@ function startCountryTimeLapse(data) {
 
         console.log(topListData[0].id);
 
-        let imageCallback = function(data) {
-          console.log(data[0].image);
-          show_image(data[0].image)
-        }
-        getAllDocuments(db.collection('songs'), {"id":topListData[0].id}, imageCallback, [], {_id: 0, "image": 1})
+        displayTopArtistImage(topListData[0].id)
 
         week += 1;
         if(week == data.length) {
           streamGraph.pause();
-          //stopSongTimeLapse();
         }
       }
       it++;
@@ -900,118 +978,119 @@ let tip = d3.tip().attr('class', 'd3-tip').offset([20, -330]).html("<div class='
 // Create a local variable for storing previous data.
 let previousData = d3.local();
 
- 
+function removeTopList() {
+  d3.select(".table").remove();
+}
 // toplistData - list of json-like elements
 function createToplist(toplistData, keys, filter, sortBy, info = false){  
+  removeTopList();
 
-  d3.select(".table").remove();
+  toplistData = toplistData.sort(function(a, b){
+      if(+a[sortBy] < +b[sortBy]) return 1;
+      if(+a[sortBy] > +b[sortBy]) return -1;
+      return 0;
+  });
 
-    toplistData = toplistData.sort(function(a, b){
-        if(+a[sortBy] < +b[sortBy]) return 1;
-        if(+a[sortBy] > +b[sortBy]) return -1;
-        return 0;
-    });
+  toplistData = toplistData.slice(0,15);
 
-    toplistData = toplistData.slice(0,15);
+  //console.log(JSON.stringify(toplistData));
 
-    //console.log(JSON.stringify(toplistData));
+  //var keyValues = d3.keys(toplistData[0]);
+  //let keys = {"p": "#","n": "Title", "a": "Artist", "s": "Streams"};
+  let head = rankPage
+      .append("div")
+      .attr("class", "table")
+      .style("margin-left", "10px")
+      .append("div")
+      .attr("class", "headers")
+      //.style("height", data_row_size + "px");
 
-    //var keyValues = d3.keys(toplistData[0]);
-    //let keys = {"p": "#","n": "Title", "a": "Artist", "s": "Streams"};
-    let head = rankPage
-        .append("div")
-        .attr("class", "table")
-        .style("margin-left", "10px")
-        .append("div")
-        .attr("class", "headers")
-        //.style("height", data_row_size + "px");
+  console.log(d3.entries(keys))
 
-    console.log(d3.entries(keys))
-
-    head.selectAll("div.header")
-        .data(d3.entries(keys))
-        .enter()
-        .append("div")
-        .attr("class", "header")
-        .attr("cell_type", (d) => {return d.key;})        
-        .html((d, i) => {return d.value;});
+  head.selectAll("div.header")
+      .data(d3.entries(keys))
+      .enter()
+      .append("div")
+      .attr("class", "header")
+      .attr("cell_type", (d) => {return d.key;})        
+      .html((d, i) => {return d.value;});
 
 
-    let data_rows = d3.select("div.table").selectAll("div.datarow")
-        .data(toplistData, (d) => {return d.id;})
-        .enter()
-        .append("div")
-        .attr("class", "datarow")
-        .attr("id", function(d) { return uniqueID++; })
+  let data_rows = d3.select("div.table").selectAll("div.datarow")
+      .data(toplistData, (d) => {return d.id;})
+      .enter()
+      .append("div")
+      .attr("class", "datarow")
+      .attr("id", function(d) { return uniqueID++; })
+      .style("height", data_row_size + "px")
+      .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";});
+
+  data_rows.selectAll("div.data")
+      .data((d) => { return d3.entries(filter(d));})
+      .enter()
+      .append("div")
+      .attr("class", "data")
+      .attr("cell_type", (d) => {return d.key;})
+      .html((d) => {return d.value;});
+
+  if(info) {
+
+    let info_image = data_rows
+      .append("div")
+        .attr("class", "info")
         .style("height", data_row_size + "px")
-        .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";});
-
-    data_rows.selectAll("div.data")
-        .data((d) => { return d3.entries(filter(d));})
-        .enter()
-        .append("div")
-        .attr("class", "data")
-        .attr("cell_type", (d) => {return d.key;})
-        .html((d) => {return d.value;});
-
-    if(info) {
-
-      let info_image = data_rows
-        .append("div")
-          .attr("class", "info")
-          .style("height", data_row_size + "px")
-          .style("width", data_row_size + "px")
-        .append("svg")
-          .attr("width", 24 + "px")
-          .attr("height", 24 + "px")
-          .attr("class", "info")
-        .append("image")
-          .attr("xlink:href","img/info_icon.png")
-          .attr("width", 24 + "px")
-          .attr("height", 24 + "px")
-          .on('mouseover', function(d) {     
-            d3.select(".d3-tip").transition().style("opacity", "1");   
-            tip.show(d);             
-            let radarCallback = function(features) {
-              //console.log(features)
-              if(features[0]) {
-                let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
-              }
+        .style("width", data_row_size + "px")
+      .append("svg")
+        .attr("width", 24 + "px")
+        .attr("height", 24 + "px")
+        .attr("class", "info")
+      .append("image")
+        .attr("xlink:href","img/info_icon.png")
+        .attr("width", 24 + "px")
+        .attr("height", 24 + "px")
+        .on('mouseover', function(d) {     
+          d3.select(".d3-tip").transition().style("opacity", "1");   
+          tip.show(d);             
+          let radarCallback = function(features) {
+            //console.log(features)
+            if(features[0]) {
+              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
             }
+          }
 
-            getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})
+          getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})
 
-          })
-          .on('mouseout', function(d) {
-            d3.select(".d3-tip").transition().duration(1000).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
-            
-          });
-          /* .on("mouseover", function(d) {		
-              div_toplist.transition()		
-                  .duration(200)		
-                  .style("opacity", .9);		
-              div_toplist	
-                  .style("left", (d3.event.pageX + 10) + "px")		
-                  .style("top", (d3.event.pageY - 10) + "px");
+        })
+        .on('mouseout', function(d) {
+          d3.select(".d3-tip").transition().duration(1000).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
+          
+        });
+        /* .on("mouseover", function(d) {		
+            div_toplist.transition()		
+                .duration(200)		
+                .style("opacity", .9);		
+            div_toplist	
+                .style("left", (d3.event.pageX + 10) + "px")		
+                .style("top", (d3.event.pageY - 10) + "px");
 
-              let svg_radar2 = RadarChart(".song_tooltip", data_radar, radarChartOptions2);
-            })					
-          .on("mouseout", function(d) {		
-              div_toplist.transition()		
-                  .duration(500)		
-                  .style("opacity", 0);}) */
-      info_image.call(tip);
+            let svg_radar2 = RadarChart(".song_tooltip", data_radar, radarChartOptions2);
+          })					
+        .on("mouseout", function(d) {		
+            div_toplist.transition()		
+                .duration(500)		
+                .style("opacity", 0);}) */
+    info_image.call(tip);
 
-      d3.select(".d3-tip")
-          .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
-          .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
-              .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); });
-    }
+    d3.select(".d3-tip")
+        .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
+        .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
+            .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); });
+  }
 
-    //data_rows.on("click", showDetails);
+  //data_rows.on("click", showDetails);
 
-    d3.selectAll("[cell_type = p]")
-        .each(function(d) { previousData.set(this, d.value) });
+  d3.selectAll("[cell_type = p]")
+      .each(function(d) { previousData.set(this, d.value) });
 }    
 
 function transitionSheet() {

@@ -30,8 +30,10 @@ function stackMax(layer) {
 
 class StreamGraph {
 
+
   constructor(width, height, data, svg, listener, colorrange = null, color = "blue", keys) {
 
+    this.week = 0;
     this.keys = keys;
 
     this.speed_idx = 3;
@@ -83,9 +85,7 @@ class StreamGraph {
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
         
-      
     this.createLayers(data);
-
 
     this.streamGraph.selectAll("layers")
       .data(this.layers)
@@ -123,8 +123,6 @@ class StreamGraph {
         .style("font-size", "14px")
         .text("Streams/week"); 
  
-
-        
 
     this.applyNewData();
 
@@ -188,7 +186,7 @@ class StreamGraph {
 
     this.playButton.on("click", function() { 
       _this.playing = true;
-      _this.listener.buttonPressed(true);
+      _this.listener.buttonPressed(true, _this.week);
       _this.drawPauseButton(250);
     });
   }
@@ -297,6 +295,11 @@ class StreamGraph {
   }
 
   setData(data) {
+    this.week = 0;
+
+    this.speed_idx = 3;
+    this.timelapseSpeed = timelapseSpeeds[this.speed_idx];
+    
     this.setTimeStamp(0);
     this.createLayers(data);
     this.changeGraph();
