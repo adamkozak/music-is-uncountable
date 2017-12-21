@@ -46,7 +46,7 @@ const RadarChart = function RadarChart(parent_selector, data, options) {
 	 maxValue: 0, 			//What is the value that the biggest circle will represent
 	 labelFactor: 1.25, 	//How much farther than the radius of the outer circle should the labels be placed
 	 wrapWidth: 60, 		//The number of pixels after which a label needs to be given a new line
-	 opacityArea: 0.35, 	//The opacity of the area of the blob
+	 opacityArea: 0.9, 	//The opacity of the area of the blob
 	 dotRadius: 4, 			//The size of the colored circles of each blog
 	 opacityCircles: 0.1, 	//The opacity of the circles of each blob
 	 strokeWidth: 2, 		//The width of the stroke around each blob
@@ -133,6 +133,7 @@ const RadarChart = function RadarChart(parent_selector, data, options) {
 		.attr("r", d => radius / cfg.levels * d)
 		.style("fill", "#CDCDCD")
 		.style("stroke", "#CDCDCD")
+		.style("opacity", 0.5)
 		.style("fill-opacity", cfg.opacityCircles)
 		.style("filter" , "url(#glow)");
 
@@ -144,8 +145,8 @@ const RadarChart = function RadarChart(parent_selector, data, options) {
 	   .attr("x", 4)
 	   .attr("y", d => -d * radius / cfg.levels)
 	   .attr("dy", "0.4em")
-	   .attr("fill", "#404040")
 	   .style("font-size", "10px")
+	   .style("color", "white")
 	   .text(d => Format(maxValue * d / cfg.levels) + cfg.unit);
 
 	/////////////////////////////////////////////////////////
@@ -165,15 +166,17 @@ const RadarChart = function RadarChart(parent_selector, data, options) {
 		.attr("x2", (d, i) => rScale(maxValue *1.1) * cos(angleSlice * i - HALF_PI))
 		.attr("y2", (d, i) => rScale(maxValue* 1.1) * sin(angleSlice * i - HALF_PI))
 		.attr("class", "line")
-		.style("stroke", "white")
+		.style("stroke", "#CDCDCD")
+		.style("opacity", 0.5)
 		.style("stroke-width", "2px");
 
 	//Append the labels at each axis
 	axis.append("text")
 		.attr("class", "legend")
-		.style("font-size", "11px")
+		.style("font-size", "12px")
 		.attr("text-anchor", "middle")
 		.attr("dy", "0.35em")
+		.attr("fill", "white")
 		.attr("x", (d,i) => rScale(maxValue * cfg.labelFactor) * cos(angleSlice * i - HALF_PI))
 		.attr("y", (d,i) => rScale(maxValue * cfg.labelFactor) * sin(angleSlice * i - HALF_PI))
 		.text(d => d)
@@ -210,11 +213,11 @@ const RadarChart = function RadarChart(parent_selector, data, options) {
 			//Dim all blobs
 			parent.selectAll(".radarArea")
 				.transition().duration(200)
-				.style("fill-opacity", 0.1);
+				.style("fill-opacity", 0.9);
 			//Bring back the hovered over blob
 			d3.select(this)
 				.transition().duration(200)
-				.style("fill-opacity", 0.7);
+				.style("fill-opacity", 0.9);
 		})
 		.on('mouseout', () => {
 			//Bring back all blobs

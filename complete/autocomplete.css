@@ -49,7 +49,7 @@
 }
 
 .bp-autocomplete-selected-row, .bp-autocomplete-row:hover {
-    background-color: lightblue;
+    background-color: #4c4c4c;
     color: #ffffff;
 }
 
@@ -82,7 +82,8 @@
 
 
 .bp-ac {
-    font-family: "bariol_regularregular", Arial;
+    /*
+    font-family: "bariol_regularregular", Arial;*/
     letter-spacing: 0.01em;
     font-size: 14px;
     padding: 40px;
@@ -93,7 +94,6 @@
 }
 
 .bp-ac input, button, textarea {
-    -webkit-appearance: none;
 }
 
 #bp-ac .white-bg {
@@ -111,13 +111,13 @@
 }
 
 #bp-ac .centered-heading {
-    font-family: "bariol_regularregular", Arial;
+    font-family: 'Roboto', sans-serif;
     font-size: 5em;
     text-align: center;
 }
 
 #bp-ac h1, h2, h3, h4, h5, h6 {
-    font-family: "bariol_regularregular", Arial;
+    font-family: 'Roboto', sans-serif;
     line-height: 1em;
     margin-bottom: 10px;
     margin-top: 10px;
@@ -211,8 +211,8 @@ h1 {
     .top-bar-links li {
         list-style: none;
         float: left;
-        margin-right: 20px;
-        font-family: "bariol_regularregular";
+        margin-right: 20px;/
+        font-family: 'Roboto', sans-serif;
         font-size: 16px;
         font-weight: 800;
         letter-spacing: -0.02em;
@@ -763,8 +763,8 @@ input[type="checkbox"] {
 }
 
 .bp-active-tab {
-    padding-top: 0px;
-    font-family: bariol_boldbold;
+    padding-top: 0px;/*
+    font-family: bariol_boldbold;*/
     margin-top: -5px;
     color: #000000;
     height: 21px;
@@ -830,8 +830,8 @@ input[type="checkbox"] {
     width: 100%;
 }
 
-.bold-span {
-    font-family: "bariol_boldbold";
+.bold-span {/*
+    font-family: "bariol_boldbold";*/
     margin-left: 5px;
 }
 
@@ -1000,7 +1000,7 @@ input[type="checkbox"] {
     position:relative;
     border:1px solid #E8E8E8;
     border-top:60px solid #fdfd86;
-    font-family:'Reenie Beanie';
+    font-family: 'Roboto', sans-serif;
     font-size:22px;
     border-bottom-right-radius: 60px 5px;
     display:inline-block;
@@ -1058,7 +1058,7 @@ input[type="checkbox"] {
     font-size: 20px;
     cursor: pointer;
     text-align: center;
-    font-family: bariol_boldbold;
+    font-family: 'Roboto', sans-serif;
 }
 
 .close-card:hover {
@@ -1086,5 +1086,5 @@ td {
 
 .bp-autocomplete-highlight {
     font-weight:bold;
-    color: #0000FF;
+    color: #FFFBCC;
 }

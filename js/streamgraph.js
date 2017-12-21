@@ -30,7 +30,9 @@ function stackMax(layer) {
 
 class StreamGraph {
 
-  constructor(width, height, data, svg, listener, colorrange = null, color = "blue") {
+  constructor(width, height, data, svg, listener, colorrange = null, color = "blue", keys) {
+
+    this.keys = keys;
 
     this.speed_idx = 3;
     this.timelapseSpeed = timelapseSpeeds[this.speed_idx];
@@ -83,6 +85,7 @@ class StreamGraph {
         
       
     this.createLayers(data);
+
 
     this.streamGraph.selectAll("layers")
       .data(this.layers)
@@ -321,12 +324,17 @@ class StreamGraph {
     this.datearray = [];
 
     this.stack = d3.stack()
-      .keys(["Europe","North America","Latin America"/*"South America", "Central America"*/, "Asia & Oceania"/* "Asia","Oceania"*/])
+      .keys(this.keys)
       .order(d3.stackOrderNone)
       //.offset(d3.stackOffsetSilhouette);
       .offset(d3.stackOffsetNone);
 
+
+    console.log(this.keys)
+
     this.layers = this.stack(this.data)
+
+    console.log(this.layers)
 
     this.x = d3.scaleTime()
       .range([0, this.graph_width])
@@ -366,6 +374,7 @@ class StreamGraph {
 
   applyNewData() {
 
+    let _this = this;
     let data = this.data
 
     let x = this.x
@@ -424,8 +433,13 @@ class StreamGraph {
 
         let streamsSum = layers.map(x => x[mousedate][1] - x[mousedate][0]).reduce((a, v) => a + v, 0)
 
-        tooltip.html(/*timeFormat(datearray[mousedate])*/ "Week " + (mousedate+1) + "<br>" + d.key + ": " + nFormatter(regionSum, 3) + "<br> " + "World: " + nFormatter(streamsSum, 3)).style("visibility", "visible");
-
+        if(_this.keys.length > 1) {
+          tooltip.html(/*timeFormat(datearray[mousedate])*/ "Week " + (mousedate+1) + "<br>" + d.key + ": " + nFormatter(regionSum, 3) + "<br> " + "World: " + nFormatter(streamsSum, 3))
+            .style("visibility", "visible");
+        } else {
+          tooltip.html(/*timeFormat(datearray[mousedate])*/ "Week " + (mousedate+1) + "<br>" + "Total streams" + ": " + nFormatter(regionSum, 3))
+            .style("visibility", "visible");
+        }
         tooltip
           .style("left", (d3.event.pageX) + "px")   
           .style("top", (d3.event.pageY - tooltip.node().getBoundingClientRect().height) + "px");  
@@ -484,7 +498,7 @@ class StreamGraph {
 
     this.yAxis = d3.axisLeft()
         .scale(this.y)
-        .ticks(6)
+        .ticks(4)
         .tickFormat(x => nFormatter(x, 3));
 
     let x = this.x
@@ -576,6 +590,10 @@ class StreamGraph {
   pause() {
     this.playing = false;
     this.drawPlayButton();
+  }
+
+  remove() {
+    this.streamGraph.remove();
   }
 
 

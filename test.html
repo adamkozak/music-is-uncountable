@@ -7,6 +7,8 @@
   <script src="complete/awesomplete.js" async></script>-->
   <script type="text/javascript" src="complete/autocomplete.js"></script>
   <link rel="stylesheet" href="complete/autocomplete.css"/>
+
+
 </head>
 
 <style>
@@ -60,6 +62,14 @@ div.table-container {
     position: absolute;
     /*overflow: scroll;*/
     overflow: hidden;
+    overflow-y: auto;
+    width: 30vw;
+}
+
+div.stream-container {
+    position: absolute;
+    /*overflow: scroll;*/
+    overflow: hidden;
     width: 30vw;
 }
 
@@ -96,6 +106,26 @@ div[cell_type="formatted_streams"] {
     left: 40%;
 }
 
+div[cell_type="c_formatted_streams"] {
+    color: rgb(188, 188, 188);
+    width: 20%;
+    left: 80%;
+}
+
+div[cell_type="c_song"] {
+    color: rgb(188, 188, 188);
+    left: 20%;
+    width: calc(60% - 0px);
+    margin-left: 0px;
+}
+
+div[cell_type="c_position"] {
+    color: rgb(188, 188, 188);
+    left: 10%;
+    width: calc(10%);
+    margin-left: 0px;
+}
+
 div[cell_type="n"] {
     color: rgb(188, 188, 188);
     left: 10%;
@@ -116,7 +146,7 @@ div[cell_type="s"] {
 
 div.info {
   position: absolute;
-  right: 0px;
+  left: 0px;
   opacity: 1;
   z-index: 1;	
   display: flex;
@@ -234,7 +264,7 @@ div.song_tooltip {
   line-height: 1;
   font-weight: 300;
   padding: 3px;
-  background: rgba(145, 145, 145, 0.509);
+  background: rgba(82, 82, 82, 0.709);
   /* color: #fff; */
   border-radius: 2px;
   pointer-events: none;
@@ -264,7 +294,7 @@ div.song_tooltip {
 }
 
 text.axisLabel {
-  fill: #262626 !important;
+  fill: white !important;
 }
 
 
@@ -277,6 +307,8 @@ div.tab button {
     cursor: pointer;
     padding: 14px 16px;
     transition: 0.3s;
+    font-size: 18px;
+    font-family: Roboto, sans-serif;
 }
 
 #btnSongs{
@@ -300,7 +332,7 @@ div.tab button.active {
 
 /* Style the tab content */
 .tabcontent {
-  font-family: 'Titillium Web', sans-serif;
+  /*font-family: 'Titillium Web', sans-serif;*/
 	/*font-family : Roboto;*/
   padding: 6px 12px;
   border: 1px solid #ccc;
@@ -321,6 +353,13 @@ div.tab button.active {
 }
 .container div[class^="column"]:last-child {
   border-right: none;
+}
+
+.column div[class^="table-container"] {
+  border-bottom: 1px solid #C2C7C9;
+}
+.column div[class^="stream-container"] {
+  border-top: 1px solid #C2C7C9;
 }
 
 </style>
@@ -358,13 +397,7 @@ div.tab button.active {
   </div>   
 </body>
 
-<!--<link href="https://fonts.googleapis.com/css?family=Indie+Flower" type="text/css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">-->
-<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
-
 <link rel="stylesheet" type="text/css" href="music.css">
-
-
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
@@ -383,10 +416,8 @@ div.tab button.active {
 <script>
 
 
-
-let timer;
-
 let leftDiv = document.getElementById("left");
+let rightDiv = document.getElementById("right");
 
 let width = leftDiv.clientWidth;
 let height = window.innerHeight ;
@@ -480,7 +511,6 @@ for(let i = 0; i < AsiaOceania.length; i++) {
   CountryContinentDict[AsiaOceania[i]] = "Asia & Oceania"
 }
 
-
 let colorScale = d3.scaleLinear()
     .domain([0,1])
     //.interpolate(d3.interpolateHcl)
@@ -498,46 +528,125 @@ for(let continent in continentColorsDict) {
                               .range([d3.rgb(continentColorsDict[continent]), d3.interpolateRgb(d3.rgb(continentColorsDict[continent]),"#666")(0.5), d3.rgb("#666")]);
 }
 
-
 let svg = d3.select("#left").append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("transform", "translate(" + 0 + "," + 0 + ")");
-
-
 
 let worldDataReadyCallback = function() {
   setCountriesList();
 
 }
 
-
 let zoomCallback = function(alpha) {
   let countryInfoCallback = function(timeLine) {
-    console.log(timeLine);
+    data = timeLine.map(function(x) {
+      return {
+        "value": parseInt(x.s),
+        "id": x.id,
+        "artist": x.a,
+        "song": x.n,
+        "position": x.p,
+        "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
+      }
+    });
+
+    datesArray = [];
+
+    for(let i = 1; i < 34; i++) {
+      let d = new Date(lowestDate.getTime());
+      d.setDate(d.getDate() + i*7);
+      datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
+    }
+
+    timelapseData = []
+    for(let j = 0; j < datesArray.length; j++) {
+      timelapseData.push({"date": datesArray[j]})
+    }
+
+    for(let i = 0; i < data.length; i++) {
+      let dateIdx = datesArray.indexOf(data[i].date)
+      if(dateIdx > -1) {
+        timelapseData[dateIdx][data[i].song] = data[i];
+      }
+    }
+
+    let streamData = []
+    for(let j = 0; j < datesArray.length; j++) {
+      streamData.push({"date": datesArray[j]})
+      streamData[j]["Streams"] = 0
+    }
+
+    for(let i = 0; i < data.length; i++) {
+      let dateIdx = datesArray.indexOf(data[i].date)
+      if(dateIdx > -1) {
+        streamData[dateIdx]["Streams"] += data[i].value
+      }
+    }
+
+    let format = d3.timeParse("%Y/%m/%d");
+
+    streamData.forEach(function(d) {
+      d.date = format(d.date);
+    });
+
+    let topListData = getCountryYearlyTopListData(timelapseData);
+
+    createToplist(topListData, {"c_position": "#", "c_song": "Song", "c_formatted_streams": "Streams"}, ({c_position, c_song, c_formatted_streams}) => ({c_position, c_song, c_formatted_streams}), "streams", true);
+
+    console.log(streamData)
+
+    if(streamGraph) {
+      streamGraph.setData(streamData);
+
+      //streamGraphTransition(1000);
+      //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
+    }
+    else {
+      streamGraphListener = {
+        buttonPressed(playing) {
+          if(playing) {
+            startCountryTimeLapse(timelapseData)
+
+          } else {
+
+          }
+        }
+      }
+
+      let rightWidth = rightDiv.clientWidth;
+      streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, ["#A2A2A2"], null, ["Streams"])
+
+      resize();
+      streamGraph.streamGraph
+        .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + ", 0)")
+
+      streamGraphTransition(1000);
+
+    }
+    
   }
 
-  getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":21}}, countryInfoCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
+  topListText.text("Top chart in " + worldMap.spotify_dict[alpha].name)
+  getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":101}}, countryInfoCallback, [], {_id: 0, id:1, s: 1, d:1, a: 1, n: 1, p:1})
 }
 
 let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict, worldDataReadyCallback, zoomCallback);
 
 let streamPage = d3.select("#right").append("div")
-  .attr("class", "table-container")
-  .style("width", "calc(35vw - 46px)")
+  .attr("class", "stream-container")
+  .style("width", "calc(35vw - 36px)")
   .style("height", "30%")
-
 
 streamPage
     .style("bottom", 0 + "px")
     .style("right", 36 + "px")
 
-
 let rankPage = d3.select("#right").append("div")
     .attr("class", "table-container")
     .style("align-items", "center")
-    .style("margin-left", "10px")
-    .style("width", "calc(35vw - 46px)")
+    .style("margin-left", "0px")
+    .style("width", "calc(35vw - 36px)")
     .style("height", "70%")
 
 let svgStreamGraph = streamPage.append("svg")
@@ -553,22 +662,21 @@ svgStreamGraph
 let topListText = rankPage.append("h2")
   .text("")
   .style("margin", "10px")
-  .style("width", "calc(100% - 36px)")
+  .style("width", "calc(35vw - 36px)")
   .style("text-align", "center")
   .style("color", "white")
-
-
 
 rankPage
     .style("top", 0 + "px")
     .style("right", 36 + "px")
 
 function streamGraphTransition(delay) {
-
-      streamGraph.streamGraph.transition()
-        .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  svgStreamGraph.node().getBoundingClientRect().height/5 + ")")
-        .duration(delay) 
-        .delay(0)   
+  if(streamGraph) {
+    streamGraph.streamGraph.transition()
+      .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  svgStreamGraph.node().getBoundingClientRect().height/5 + ")")
+      .duration(delay) 
+      .delay(0)   
+  }
 }
 
 
@@ -699,7 +807,6 @@ let mc = autocomplete(document.getElementById('autocomplete'))
         });
 
         
-        regionsArray = ["Europe","North America","Latin America"/*"South America", "Central America"*/, "Asia & Oceania"/*"Asia","Oceania"*/]
         datesArray = [];
 
         for(let i = 1; i < 34; i++) {
@@ -723,8 +830,8 @@ let mc = autocomplete(document.getElementById('autocomplete'))
         let streamData = []
         for(let j = 0; j < datesArray.length; j++) {
           streamData.push({"date": datesArray[j]})
-          for(let i = 0; i < regionsArray.length; i++) {
-            streamData[j][regionsArray[i]] = 0
+          for(let i = 0; i < continents.length; i++) {
+            streamData[j][continents[i]] = 0
           }
         }
 
@@ -747,9 +854,10 @@ let mc = autocomplete(document.getElementById('autocomplete'))
 
         let topListData = getSongYearlyTopListData(timelapseData);
 
-        createToplist(topListData, {"country": "Country", "formatted_streams": "Streams"}, ({country, formatted_streams, position}) => ({country, formatted_streams}), "streams");
+        createToplist(topListData, {"country": "Country", "formatted_streams": "Streams"}, ({country, formatted_streams, position}) => ({country, formatted_streams}), "streams", false);
 
 
+        console.log(streamData)
         if(streamGraph) {
           streamGraph.setData(streamData);
 
@@ -763,7 +871,7 @@ let mc = autocomplete(document.getElementById('autocomplete'))
                 //console.log(JSON.stringify(timelapseData))
                 let topListData = getSongTopListData(timelapseData[0]);
 
-                createToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "Avg. ranking"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
+                createToplist(topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
                 startSongTimeLapse(timelapseData);
               } else {
                 //stopSongTimeLapse();
@@ -772,25 +880,20 @@ let mc = autocomplete(document.getElementById('autocomplete'))
             }
           }
 
-          //streamGraph = new StreamGraph(width/2, height/7, streamData, svgStreamGraph, streamGraphListener, continentColors, null)
-          streamGraph = new StreamGraph(7*svgStreamGraph.node().getBoundingClientRect().width/10, 7*svgStreamGraph.node().getBoundingClientRect().height / 10, streamData, svgStreamGraph, streamGraphListener, continentColors, null)
-          /*
-          streamGraph.streamGraph 
-            .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + "," + (height  - streamGraph.streamGraph.node().getBoundingClientRect().height - 10) + ")")*/
+          let rightWidth = rightDiv.clientWidth;
+
+          streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, continentColors, null, continents)
+
           streamGraph.streamGraph
             .attr("transform", "translate(" + (-streamGraph.streamGraph.node().getBoundingClientRect().width) + ", 0)")
 
           streamGraphTransition(1000);
-
         }
 
-        //alet legend = setRankLegend(width/30, height/2, [colorScale], svg);
         let legend = setRankLegend(width/20, height/3, colorScales, svg);
 
         legend
           .attr("transform", "translate(" + 10 + ", " + (3*height/4 - legend.node().getBoundingClientRect().height/2) + ")")
-
-        //resize();
       }
 
       getAllDocuments(db.collection('entries'), {"id":selectedSong.id}, songEntriesCallback, [], {_id: 0, s: 1, r:1, d: 1, p:1})
@@ -845,7 +948,6 @@ function setCountriesList() {
     .on("click", function() {
       let AlphA = d3.select(this).attr('id');
       worldMap.zoom(AlphA);
-	    //show_image('https://i.scdn.co/image/d0186ad64df7d6fc5f65c20c7d16f4279ffeb815');
     });
   });
   
@@ -854,30 +956,34 @@ function setCountriesList() {
   
 let div = null;
 
+let current_image_url;
 let show_image = function(url) {
+  if(url == current_image_url) {
+    return;
+  }
 
-  console.log("sdfafdsa")
-
+  current_image_url = url;
   d3.selectAll(".image-container").remove();
 
+  if(url == null) {
+    return;
+  }
+
   setTimeout(function() {
-    console.log("skafél")
 
     div = d3.select("#left").append("div")
       .attr("class", "image-container")
-      .style("top", ((height-130)/2) + "px")
-      .style("left", ((width-130)/2) + "px")
+      .style("top", ((height-220)/2) + "px")
+      .style("left", ((width-220)/2) + "px")
       .style("position", "absolute")
-      .style("width", "130px")
-      .style("height", "130px");
-
-    console.log(height)
-    console.log(width)
+      .style("width", "220px")
+      .style("height", "220px");
 
     let canvas = div
       .append("canvas")
-      .attr("width", 130)
-      .attr("height" , 130)
+      .attr("width", 220)
+      .attr("height" , 220)
+      .style("opacity", 0)
       .style('border-radius', '50%');
 
       //creer l'image 
@@ -888,10 +994,28 @@ let show_image = function(url) {
         //fonction qui telecharge l'image
       image.onload = function() {
         // dessine l'image dans le contexte du canevas
-        context.drawImage (image, 0, 0, 130, 130)          
+        context.drawImage (image, 0, 0, 220, 220)    
+        clipArc(context, 110, 110, 112, 2);
+
+        function clipArc(ctx, x, y, r, f) {
+            canvas.transition()
+              .duration(300)
+              .style("opacity", 1);
+
+            ctx.globalCompositeOperation = 'destination-in';
+
+            ctx.filter = "blur(12px)";  // "feather"
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // reset comp. mode and filter
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.filter = "none";
+        }      
       }
 
-    }, 1000);
+    }, 0);
 
 }
 
@@ -900,8 +1024,29 @@ let show_image = function(url) {
 let mode = 'song';
 function Open(evt, Selection) {
 	
-	if (Selection === 'Countries') { mode = 'country'; }
-	else { mode = 'song'}
+	if (Selection === 'Countries') { 
+    if(mode != 'country') {
+      worldMap.drawMap()
+      if(streamGraph) {
+        streamGraph.remove();
+        streamGraph = null;
+      }
+      mode = 'country'; 
+    }
+  }
+	else { 
+    if(mode != 'song') {
+      show_image(null);
+      if(streamGraph) {
+        streamGraph.remove();
+        streamGraph = null;
+      }
+      if(worldMap) {
+        worldMap.reset();
+      }
+      mode = 'song'
+    }
+  }
 
 	
 	d3.selectAll(".tablinks").style("background-color" , "#eee"); 
@@ -942,7 +1087,7 @@ function startSongTimeLapse(data) {
     let speed = streamGraph.timelapseSpeed;
     let delta = 1000 / speed;
 
-    timer = setTimeout(function() {  
+    setTimeout(function() {  
       if(streamGraph.playing) {
         setNextTimeLapse();
       }
@@ -952,7 +1097,7 @@ function startSongTimeLapse(data) {
       if(it%20 == 0) {
 
         let topListData = getSongTopListData(data[week]);              
-        updateToplist(speed, topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams");
+        updateToplist(speed, topListData, {"country": "Country", "formatted_streams": "Streams", "position": "# in country"}, ({country, formatted_streams, position}) => ({country, formatted_streams, position}), "streams", false);
   
         let countriesColors = {}
 
@@ -988,15 +1133,55 @@ function startSongTimeLapse(data) {
   }
 
   setNextTimeLapse();
-  playing = true;
 }
 
-/*
-function stopSongTimeLapse() {
-  clearInterval(timer);
-  playing = false;
+function startCountryTimeLapse(data) {
+
+  let it = 0;
+  let week = 0;
+
+  if(data[week] == undefined) {
+    console.log(data)
+  }
+
+  function setNextTimeLapse() {
+    let speed = streamGraph.timelapseSpeed;
+    let delta = 1000 / speed;
+
+    setTimeout(function() {  
+      if(streamGraph.playing) {
+        setNextTimeLapse();
+      }
+
+        
+      streamGraph.setTimeStamp(it/20.0);
+      if(it%20 == 0) {
+
+        let topListData = getCountryTopListData(data[week]);
+          
+        updateToplist(speed, topListData, {"c_position": "#", "c_song": "Song", "c_formatted_streams": "Streams"}, ({c_position, c_song, c_formatted_streams}) => ({c_position, c_song, c_formatted_streams}), "streams", true);
+
+        console.log(topListData[0].id);
+
+        let imageCallback = function(data) {
+          console.log(data[0].image);
+          show_image(data[0].image)
+        }
+        getAllDocuments(db.collection('songs'), {"id":topListData[0].id}, imageCallback, [], {_id: 0, "image": 1})
+
+        week += 1;
+        if(week == data.length) {
+          streamGraph.pause();
+          //stopSongTimeLapse();
+        }
+      }
+      it++;
+    }, delta/20.0);
+  }
+
+  setNextTimeLapse();
+  playing = true;
 }
-*/
 
 function resize() {
   width = leftDiv.clientWidth;
@@ -1019,14 +1204,16 @@ function resize() {
     //streamGraph.resize(width/2, height/6)
 
     //streamGraph.resize(width/2, height/7)
-    streamGraph.resize(7*svgStreamGraph.node().getBoundingClientRect().width/10, 7*svgStreamGraph.node().getBoundingClientRect().height/10)
+
+    let rightWidth = rightDiv.clientWidth;
+    streamGraph.resize(7*rightWidth/10, 2*height/10 - 20)
     streamGraphTransition(0);
   }
 
   if(div) {
     div
-      .style("top", ((height-130)/2) + "px")
-      .style("left", ((width-130)/2) + "px")
+      .style("top", ((height-220)/2) + "px")
+      .style("left", ((width-220)/2) + "px")
   }
 } 
 
@@ -1044,7 +1231,7 @@ let triangle_height = 13;
 let indexx = 1;
 let uniqueID = 0;
 let testDataset = [];
-let features = {"acousticness": 0.187,	"danceability": 0.852, "energy": 0.773,	"instrumentalness": 0.0000305, "liveness": 0.159,	"speechiness": 0.0776, "valence": 0.907};
+
 		
 function parseFeatures(features){
   let temp = JSON.parse(JSON.stringify(features));
@@ -1059,7 +1246,7 @@ let div_toplist = d3.select("body").append("div")
     .attr("class", "song_tooltip")				
     .style("opacity", 0);
 
-let tip = d3.tip().attr('class', 'd3-tip').offset([20, 30]).html("<div class='radar'></div>");
+let tip = d3.tip().attr('class', 'd3-tip').offset([20, -330]).html("<div class='radar'></div>");
 
 // Create a local variable for storing previous data.
 let previousData = d3.local();
@@ -1105,7 +1292,7 @@ let tweets3 = {
 }
  
 // toplistData - list of json-like elements
-function createToplist(toplistData, keys, filter, sortBy){  
+function createToplist(toplistData, keys, filter, sortBy, info = false){  
 
   d3.select(".table").remove();
 
@@ -1124,6 +1311,7 @@ function createToplist(toplistData, keys, filter, sortBy){
     let head = rankPage
         .append("div")
         .attr("class", "table")
+        .style("margin-left", "10px")
         .append("div")
         .attr("class", "headers")
         //.style("height", data_row_size + "px");
@@ -1156,7 +1344,9 @@ function createToplist(toplistData, keys, filter, sortBy){
         .attr("cell_type", (d) => {return d.key;})
         .html((d) => {return d.value;});
 
-    let info_image = data_rows
+    if(info) {
+
+      let info_image = data_rows
         .append("div")
           .attr("class", "info")
           .style("height", data_row_size + "px")
@@ -1202,10 +1392,11 @@ function createToplist(toplistData, keys, filter, sortBy){
                   .style("opacity", 0);}) */
       info_image.call(tip);
 
-    d3.select(".d3-tip")
-        .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
-        .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
-            .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); });
+      d3.select(".d3-tip")
+          .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
+          .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
+              .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); });
+    }
 
     //data_rows.on("click", showDetails);
 
@@ -1232,35 +1423,6 @@ function sortSheet() {
     .style("top", (d,i) => {return (row_size + ((d.p-1) * row_size));});
     }   
 
-function transformData() {
-
-    // Section that only create fake data for testing purposes
-    // Copy to a new variable 
-    let tweets2 = JSON.parse(JSON.stringify(tweets3));
-    // Add new record
-    if (Math.random() > 0.3){
-        while(Math.random() > 0.3){
-            tweets2.tweets.push({"p": Math.round(Math.random()*20), "n": "Newone" + indexx++, 
-            "a": "author1" + indexx, "s": Math.round(Math.random()*1000000), "id": 1234324523423});
-        }
-    }
-    
-    // Shuffle records
-    tweets2.tweets = shuffle(tweets2.tweets);
-    //Remove some of the records
-    tweets2.tweets = tweets2.tweets.splice(0, tweets2.tweets.length-Math.round(Math.random()*2));
-    //New ranking
-    let ranking = d3.range(1, tweets2.tweets.length+1)
-    // Change position of each record
-    tweets2.tweets.forEach( (item, index) => {
-        item.p = ranking[index];
-    });
-
-    tweets3 = JSON.parse(JSON.stringify(tweets2));
-
-
-    updateToplist(0.2, tweets2.tweets, {"p": "#","n": "Title", "a": "Artist", "s": "Streams"}, ({p, n, a, s}) => ({p, n, a, s}), "s");
-}
 
 function getSongTopListData(weekData) {
   let temp = [];
@@ -1307,7 +1469,6 @@ function getSongYearlyTopListData(data) {
     }
   }
 
-
   let topListData = [];
   temp.forEach(x => {
     let entry = {};
@@ -1326,7 +1487,86 @@ function getSongYearlyTopListData(data) {
   return topListData;
 }
 
-function updateToplist(speed, newToplist, keys, filter, sortBy){ 
+function getCountryTopListData(weekData) {
+
+  let temp = [];
+  for(key in weekData) {
+    if(key != "date") {
+      temp.push(weekData[key])
+    }
+  }
+
+  let topListData = [];
+  temp.forEach(x => {
+    let entry = {};
+    entry["c_position"] = x.position;
+    entry["c_song"] = x.song
+    entry["id"] = x.id;
+    entry["streams"] = x.value;
+    entry["c_formatted_streams"] = nFormatter(x.value, 3);
+    entry["artist"] = x.artist;
+
+    topListData.push(entry);
+  });
+
+  return topListData;
+}
+
+function getCountryYearlyTopListData(data) {
+
+  let songDict = {}
+  data.forEach(x => {
+    for(key in x) {
+      songDict[key] = x[key].id;
+    }
+  });
+
+  let temp = [];
+
+  for(key in songDict) {
+    if(key != "date") {
+      let x = {}
+      x["id"] = songDict[key]
+      x["song"] = key;
+      x["value"] = data.reduce(function(a, v) {
+                      if(key in v) {
+                        return a + v[key].value;
+                      } else {
+                        return a;
+                      }
+                    }, 0)
+
+      temp.push(x)
+    }
+  }
+
+  let topListData = [];
+  temp.forEach(x => {
+    let entry = {};
+
+    entry["c_song"] = x.song;
+    entry["id"] = x.id;
+    entry["streams"] = x.value;
+    entry["c_formatted_streams"] = nFormatter(x.value, 3);
+    topListData.push(entry);      
+  });
+
+  topListData = topListData.sort(function(a, b){
+    if(+a["streams"] < +b["streams"]) return 1;
+    if(+a["streams"] > +b["streams"]) return -1;
+    return 0;
+  });
+
+  topListData = topListData.map(function(x, i) {
+    x["c_position"] = i+1;
+    return x;
+  })
+
+  return topListData;
+
+}
+
+function updateToplist(speed, newToplist, keys, filter, sortBy, info = false){ 
     speed = Math.max(speed, 0.35)
 
     newToplist = newToplist.sort(function(a, b){
@@ -1374,69 +1614,38 @@ function updateToplist(speed, newToplist, keys, filter, sortBy){
         .attr("is_new", "enter");
         //.on("click", showDetails);
 
-    let enter_info = enterRows
-      .append("div")
-      .attr("class", "info")
-      .style("height", data_row_size + "px")
-      .style("width", data_row_size + "px")
-    .append("svg")
-      .attr("width", 24 + "px")
-      .attr("height", 24 + "px")
-    .append("image")
-      .attr("xlink:href","img/info_icon.png")
-      .attr("width", 24 + "px")
-      .attr("height", 24 + "px")
-      .on('mouseover', function(d) {     
-          d3.select(".d3-tip").transition().style("opacity", "1");   
-          tip.show(d);
-          let radarCallback = function(features) {
-            //console.log(features)
-            if(features[0]){
-              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+    if(info) {
+      let enter_info = enterRows
+        .append("div")
+        .attr("class", "info")
+        .style("height", data_row_size + "px")
+        .style("width", data_row_size + "px")
+      .append("svg")
+        .attr("width", 24 + "px")
+        .attr("height", 24 + "px")
+      .append("image")
+        .attr("xlink:href","img/info_icon.png")
+        .attr("width", 24 + "px")
+        .attr("height", 24 + "px")
+        .on('mouseover', function(d) {     
+            d3.select(".d3-tip").transition().style("opacity", "1");   
+            tip.show(d);
+            let radarCallback = function(features) {
+              //console.log(features)
+              if(features[0]){
+                let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
+              }
             }
-          }
 
-        getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})                   
-      })
-      .on('mouseout', function(d) {
-        d3.select(".d3-tip").transition().duration(200/speed).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
-        
-      });
-      /* .on("mouseover", function(d) {		
-          div_toplist.transition()		
-              .duration(200)		
-              .style("opacity", .9);		
-          div_toplist	
-              .style("left", (d3.event.pageX + 10) + "px")		
-              .style("top", (d3.event.pageY - 10) + "px");
+          getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})                   
+        })
+        .on('mouseout', function(d) {
+          d3.select(".d3-tip").transition().duration(200/speed).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
+          
+        });
 
-          let svg_radar2 = RadarChart(".song_tooltip", data_radar, radarChartOptions2);
-        })					
-      .on("mouseout", function(d) {		
-          div_toplist.transition()		
-              .duration(500)		
-              .style("opacity", 0);}) */
-      enter_info.call(tip);
-
-/* d3.select(".d3-tip")
-    .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
-    .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
-        .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); }); */
-
-/*         .on("mouseover", function(d) {		
-        div_toplist.transition()		
-            .duration(200)		
-            .style("opacity", .9);		
-        div_toplist.html(d.id)	
-            .style("left", (d3.event.pageX + 10) + "px")		
-            .style("top", (d3.event.pageY - 10) + "px");	
-        console.log(d.id);
-        })					
-    .on("mouseout", function(d) {		
-        div_toplist.transition()		
-            .duration(500)		
-            .style("opacity", 0);	
-  }); */
+        enter_info.call(tip);
+    }
 
     let enterCells = enterRows.selectAll("div.data")
         .data((d) => {return d3.entries(filter(d));})
@@ -1464,8 +1673,6 @@ function updateToplist(speed, newToplist, keys, filter, sortBy){
         .remove();
 }                   
 function addTriangle() {
-    //let inner_data = d3.select(this).selectAll("[cell_type = p]").data();
-    //console.log(inner_data[0]);
 
     d3.select(this).selectAll("[cell_type = p]")
         .append('svg')
@@ -1536,54 +1743,8 @@ width_radar = +style.getPropertyValue('--tooltip-song-size') + 60 - margin_radar
 height_radar = +style.getPropertyValue('--tooltip-song-size') - margin_radar.top - margin_radar.bottom;
 resize();
 
-//////////////////////////////////////////////////////////////
-////////////////////////// Data //////////////////////////////
-//////////////////////////////////////////////////////////////
 
-var data_radar = [
-  { name: 'Allocated budget',
-    axes: [
-      {axis: 'Sales', value: 42},
-      {axis: 'Marketing', value: 20},
-      {axis: 'Development', value: 60},
-      {axis: 'Customer Support', value: 26},
-      {axis: 'Information Technology', value: 35},
-      {axis: 'Administration', value: 20}
-    ]
-  },
-  { name: 'Actual Spending',
-    axes: [
-      {axis: 'Sales', value: 50},
-      {axis: 'Marketing', value: 45},
-      {axis: 'Development', value: 20},
-      {axis: 'Customer Support', value: 20},
-      {axis: 'Information Technology', value: 25},
-      {axis: 'Administration', value: 23}
-    ]
-  }
-];
 
-/*     //////////////////////////////////////////////////////////////
-////// First example /////////////////////////////////////////
-///// (not so much options) //////////////////////////////////
-//////////////////////////////////////////////////////////////
-var radarChartOptions = {
-  w: 290,
-  h: 350,
-  margin: margin,
-  levels: 5,
-  roundStrokes: true,
-  color: d3.scaleOrdinal().range(["#26AF32", "#762712"]),
-  format: '.0f'
-};
-
-// Draw the chart, get a reference the created svg element :
-let svg_radar1 = RadarChart(".radarChart", data, radarChartOptions); */
-
-//////////////////////////////////////////////////////////////
-///// Second example /////////////////////////////////////////
-///// Chart legend, custom color, custom unit, etc. //////////
-//////////////////////////////////////////////////////////////
 var radarChartOptions2 = {
   w: width_radar,
   h: height_radar,
@@ -1593,7 +1754,7 @@ var radarChartOptions2 = {
   roundStrokes: false,
   color: d3.scaleOrdinal().range(["#AFC52F", "#ff6600"]),
   format: '.2f',
-  opacityArea: 0.2,
+  opacityArea: 0.35,
   opacityCircles: 0.01,
   wrapWidth: 100,
   //legend: { title: 'Organization XYZ', translateX: 100, translateY: 40 },
