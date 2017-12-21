@@ -1,6 +1,5 @@
 ul{
 	overflow:hidden;
-		
 }
 
 ul{
@@ -50,6 +49,14 @@ ul li{
     --main-row-size: 24;
     --main-font-size: 12;
     --tooltip-song-size: 250;
+}
+
+.info_text {
+	font-size :15px;
+	font-style : italic;
+	color : rgb(188, 188, 188);
+	text-align : center;
+	
 }
 
 body {

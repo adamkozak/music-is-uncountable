@@ -22,8 +22,8 @@
       </div>
 
       <div id="Songs" class="tabcontent" style = "height:90vh;">
-        <h3 style="margin-bottom: 0px; -webkit-margin-after: 0">Search for a song or chose one of the trending song from the list below.</h3>
-        <div style="height: 80px">
+        <h1 style="font-size: 20px" class="info_text">♪ Search a song using the research bar or select a song from the list! ♪</h1>
+        <div style="height: 60px">
           <div id="autocomplete"></div>
         </div>
         <div>
@@ -33,7 +33,7 @@
       </div>
 
       <div id="Countries" class="tabcontent" style = "height:90vh;  overflow:scroll;">
-        <h3>Click on the map or on the list below to select a country!</h3>
+        <h1 style="font-size: 20px" class="info_text">♪ Click on the map or on the list below to select a country! ♪</h1>
         <p></p> 
       </div>
     </div>
@@ -301,13 +301,26 @@ let zoomCallback = function(alpha) {
     streamGraph.streamGraph      
       .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  (svgStreamGraph.node().getBoundingClientRect().height/5 + 300) + ")")
 
-    resize();
 
     streamGraphTransition(1000); 
+
+    setTimeout(function() {
+
+      width = leftDiv.clientWidth;
+      height = window.innerHeight ;
+      if(streamGraph) {
+
+
+        let rightWidth = rightDiv.clientWidth;
+        streamGraph.resize(7*rightWidth/10, 2*height/10 - 20)
+        streamGraphTransition(0);
+      }
+    }, 1000);
     
   }
 
   topListText.text("Top chart in " + worldMap.spotify_dict[alpha].name)
+	topListInfoText.text("♪ Hover the info icon to show information on the acousticness of the song ♪")
   getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":101}}, countryInfoCallback, [], {_id: 0, id:1, s: 1, d:1, a: 1, n: 1, p:1})
 }
 
@@ -342,7 +355,13 @@ svgStreamGraph
 let topListText = rankPage.append("h2")
   .text("")
   .style("margin", "10px")
-  .style("width", "calc(35vw - 36px)")
+  .style("text-align", "center")
+  .style("color", "white")
+  
+  
+let topListInfoText = rankPage.append("p").attr("class", "info_text")
+  .text("")
+  .style("margin", "10px")
   .style("text-align", "center")
   .style("color", "white")
 
@@ -536,10 +555,24 @@ function showSongInfo(selectedSong) {
 
       streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, continentColors, null, continents)
 
+
       streamGraph.streamGraph      
         .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  (svgStreamGraph.node().getBoundingClientRect().height/5 + 300) + ")")
 
       streamGraphTransition(1000);
+
+      setTimeout(function() {
+
+        width = leftDiv.clientWidth;
+        height = window.innerHeight ;
+        if(streamGraph) {
+
+
+          let rightWidth = rightDiv.clientWidth;
+          streamGraph.resize(7*rightWidth/10, 2*height/10 - 20)
+          streamGraphTransition(0);
+        }
+      }, 1000);
     
 
       let legend = setRankLegend(width/20, height/3, colorScales, svg);
@@ -813,7 +846,6 @@ function startSongTimeLapse(data, week) {
       if(streamGraph.playing) {
         setNextTimeLapse();
       }
-
         
       streamGraph.setTimeStamp(it/20.0);
       if(it%20 == 0) {

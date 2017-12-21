@@ -299,7 +299,7 @@ class StreamGraph {
 
     this.speed_idx = 3;
     this.timelapseSpeed = timelapseSpeeds[this.speed_idx];
-    
+
     this.setTimeStamp(0);
     this.createLayers(data);
     this.changeGraph();
@@ -596,6 +596,7 @@ class StreamGraph {
   }
 
   remove() {
+    d3.selectAll(".tooltip").remove();
     this.streamGraph.remove();
   }
 
