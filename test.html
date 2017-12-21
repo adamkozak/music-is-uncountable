@@ -11,6 +11,50 @@
 
 <style>
 
+
+
+ul{
+	overflow:hidden;
+		
+}
+
+ul{
+counter-reset: li;
+list-style: none;
+*list-style: decimal;
+font-size: 14px;
+padding: 0;
+}
+
+ul a{
+position: relative;
+display: block;
+padding: .4em .4em 0.4em 2em;
+*padding: .4em;
+margin: .1em 0;
+background: rgba(126, 126, 126, 0.5);
+color: white;
+text-decoration: none;
+box-shadow:inset 0.5em 0 black;
+transition: box-shadow 1s;
+}
+
+ul a:hover{
+box-shadow:inset 1.2em 0 black;
+}
+
+
+
+ul li{
+  line-height:1.2em;
+  float:left;
+  display:inline;
+}
+#double li  { width:50%;}
+
+
+
+
 :root {
     --main-row-size: 24;
     --main-font-size: 12;
@@ -268,8 +312,11 @@ text.axisLabel {
 }
 
 
+
 /* Style the buttons inside the tab */
-div.tab button {
+
+
+div.tabsel button {
     background-color: inherit;
     float: left;
     border: none;
@@ -280,33 +327,39 @@ div.tab button {
 }
 
 #btnSongs{
-	background-color: #ccc;
+	background-color: rgba(126, 126, 126, 0.5);
+	color: white;
+	border :  1px solid #ccc;
+	font-family: 'Roboto', sans-serif;
+	font-size : 20px;
 }
 
 #btnCountries{
-  background-color: #eee;
+  background-color: rgb(66,66,66);
+  color: white;
+  border :  1px solid #ccc;
+  font-family: 'Roboto', sans-serif;
+  font-size : 20px;
 }
 
 /* Change background color of buttons on hover */
-div.tab button:hover {
+div.tabsel button:hover {
     background-color: #ddd;
 }
 
 
 /* Create an active/current tablink class */
-div.tab button.active {
-    background-color: #ccc;
+div.tabsel button.active {
+    background-color: rgba(126, 126, 126, 0.5);
 }
 
-/* Style the tab content */
+/* Style the tabsel content */
 .tabcontent {
-  font-family: 'Titillium Web', sans-serif;
-	/*font-family : Roboto;*/
+  
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
-  color: #626262;
-	/*color: white;*/
+	color: white;
 }
 
 .container {
@@ -326,9 +379,9 @@ div.tab button.active {
 </style>
 
 <body style="margin: 0; background: #222222">
-  <nav class="main-menu" style="width: 400px; right:0;">
+  <nav class="main-menu" style="width: 400px; right:0;background-color: rgb(66, 66, 66);">
     <div class="menu-content">
-      <div class="tab" style = "height:10vh;">
+      <div class="tabsel" style = "height:10vh;">
         <button id = "btnSongs" class="tablinks" onclick="Open(event, 'Songs')" style = "height:10vh; width: 50%;">Songs</button>
         <button id = "btnCountries" class="tablinks" onclick="Open(event, 'Countries')" style = "height:10vh; width: 50%;">Countries</button>
       </div>
@@ -360,7 +413,6 @@ div.tab button.active {
 
 <!--<link href="https://fonts.googleapis.com/css?family=Indie+Flower" type="text/css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">-->
-<link href="https://fonts.googleapis.com/css?family=Titillium+Web" rel="stylesheet">
 
 <link rel="stylesheet" type="text/css" href="music.css">
 
@@ -402,12 +454,13 @@ menu.on("mouseenter", function(d) {
       .style("display", "initial")
   })
 
-menu.on("mouseleave", function(d) {
+/*menu.on("mouseleave", function(d) {
     menuContent.style("display", "none")
     menu.transition()
       .duration(250)
       .style("width", "36px")
   })
+*/
 
 /*
 map.append("use")
@@ -806,7 +859,7 @@ let count_list;
 function setCountriesList() {
   
   count_par = d3.select("#Countries").select('p');
-  count_list = count_par.append("ul");
+  count_list = count_par.append("ul").attr('id','double');
 
   let ordered_countries = []
 
@@ -826,8 +879,9 @@ function setCountriesList() {
 
   //Append countries in the list
   for(let i = 0; i < ordered_countries.length; i++) {
-    count_list.append("li").attr("class","country_list").attr("id", ordered_countries[i]["alpha2"]).style("list-style-type", "none")
-    .text(ordered_countries[i].name);
+    count_list.append("li").attr("class","country_list").attr("id", ordered_countries[i]["alpha2"])//.style("list-style-type", "none")
+    .append('a').attr('href', '#')
+	.text(ordered_countries[i].name);
   }
 
   //d3.select("#Countries").style("overflow","scroll");
@@ -904,8 +958,8 @@ function Open(evt, Selection) {
 	else { mode = 'song'}
 
 	
-	d3.selectAll(".tablinks").style("background-color" , "#eee"); 
-	d3.selectAll("#btn"+Selection).style("background-color" , "#ccc"); 
+	d3.selectAll(".tablinks").style("background-color" , "rgb(66,66,66)").style("font-weight", "").style("color", "#a8a6a6"); 
+	d3.selectAll("#btn"+Selection).style("background-color" , "rgba(126, 126, 126, 0.5)").style("font-weight", "bold").style("color", "white"); 
 	
 	// Declare all variables
     let i, tabcontent, tablinks;
