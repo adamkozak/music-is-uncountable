@@ -48,7 +48,7 @@ ul li{
 body {
     overflow: hidden;
     width: 100%;
-    font-family: 'Roboto', sans-serif;
+    font-family: Frank Ruhl Libre;
     font-size: var(--main-font-size);
 }
 
@@ -344,15 +344,16 @@ div.tabsel button {
 	background-color: rgba(126, 126, 126, 0.5);
 	color: white;
 	border :  1px solid #ccc;
-	font-family: 'Roboto', sans-serif;
+	font-family: Frank Ruhl Libre;
 	font-size : 20px;
+	font-weight: bold;
 }
 
 #btnCountries{
   background-color: rgb(66,66,66);
-  color: white;
+  color: #a8a6a6;
   border :  1px solid #ccc;
-  font-family: 'Roboto', sans-serif;
+	font-family: Frank Ruhl Libre;
   font-size : 20px;
 }
 
