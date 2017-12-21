@@ -1,0 +1,398 @@
+ul{
+	overflow:hidden;
+		
+}
+
+ul{
+counter-reset: li;
+list-style: none;
+*list-style: decimal;
+font-size: 14px;
+padding: 0;
+}
+
+ul a{
+position: relative;
+display: block;
+padding: .4em .4em 0.4em 2em;
+*padding: .4em;
+margin: .1em 0;
+background: rgba(126, 126, 126, 0.5);
+color: white;
+text-decoration: none;
+box-shadow:inset 0.5em 0 #222222;
+transition: box-shadow 1s;
+}
+
+ul a:hover{
+box-shadow:inset 1.2em 0 #222222;
+}
+
+
+ul li{
+  line-height:1.2em;
+  float:left;
+  display:inline;
+}
+#double li  { width:50%;}
+
+
+
+
+:root {
+    --main-row-size: 24;
+    --main-font-size: 12;
+    --tooltip-song-size: 250;
+}
+
+body {
+    overflow: hidden;
+    width: 100%;
+    font-family: 'Roboto', sans-serif;
+    font-size: var(--main-font-size);
+}
+
+div.data {
+  position: absolute;
+  padding: 4px 0px;
+  height: 100%;
+  overflow:hidden;
+  display:inline-block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: auto;
+  margin-right: auto;
+  vertical-align: middle;
+  }
+
+div.headers {
+  position: absolute;
+  width: calc(29vw - 12px);
+  border: 2px rgba(75, 75, 75, 0.5);
+  border-style: solid;
+  border-radius: 5px;
+  height: var(--main-row-size);
+}
+
+div.datarow {
+  position: absolute;
+  width: calc(29vw - 12px);
+  border: 1px rgba(0, 0, 0, 0.51) solid;
+  border-radius: 5px;
+  background: rgba(126, 126, 126, 0.5);
+  height: var(--main-row-size);
+  text-align: left;
+}
+
+div.table-container {
+    position: absolute;
+    /*overflow: scroll;*/
+    overflow: hidden;
+    overflow-y: auto;
+    width: 30vw;
+}
+
+div.stream-container {
+    position: absolute;
+    /*overflow: scroll;*/
+    overflow: hidden;
+    width: 30vw;
+}
+
+div[cell_type="p"] {
+/*     display: inline-block; */ 
+    color: rgb(188, 188, 188);
+    left: 0%;
+    width: 35px;
+    text-align: right;
+    margin-left: 5px; 
+    display: flex;    
+}
+div[cell_type="position"] {
+/*     display: inline-block; */ 
+    color: rgb(188, 188, 188);
+    right: 0px;
+    width: 120px;
+    text-align: left;
+    margin-left: 0px; 
+}
+
+
+div[cell_type="country"] {
+    color: rgb(188, 188, 188);
+    left: 0%;
+    width: calc(50% - 5px);
+    margin-left: 5px;
+}
+
+
+div[cell_type="formatted_streams"] {
+    color: rgb(188, 188, 188);
+    width: 100px;
+    left: 40%;
+}
+
+div[cell_type="c_formatted_streams"] {
+    color: rgb(188, 188, 188);
+    width: 20%;
+    left: 80%;
+}
+
+div[cell_type="c_song"] {
+    color: rgb(188, 188, 188);
+    left: 20%;
+    width: calc(60% - 0px);
+    margin-left: 0px;
+}
+
+div[cell_type="c_position"] {
+    color: rgb(188, 188, 188);
+    left: 10%;
+    width: calc(10%);
+    margin-left: 0px;
+}
+
+div[cell_type="n"] {
+    color: rgb(188, 188, 188);
+    left: 10%;
+    width: calc(40% - 5px);
+}
+
+div[cell_type="a"] {
+    color: rgb(188, 188, 188);
+    left: 50%;
+    width: calc(50% - 105px);
+}
+
+div[cell_type="s"] {
+    color: rgb(188, 188, 188);
+    right: 0;
+    width: 100px;
+}
+
+div.info {
+  position: absolute;
+  left: 0px;
+  opacity: 1;
+  z-index: 1;	
+  display: flex;
+  align-items: center;
+}
+
+div.header {
+  position: absolute;
+  padding: 0 0px;
+  overflow: hidden;
+  margin-left: 0px;
+}
+
+div.header[cell_type="p"] {
+  position: absolute;
+  padding: 0 0px;
+  overflow: hidden;
+  margin-left: 5px;
+  width: 10%;
+}
+
+div.header[cell_type="position"] {
+  position: absolute;
+  padding: 0 0px;
+  overflow: hidden;
+  margin-left: 0px; 
+  width: 120px;    
+  right: 0px;    
+  text-align: left;
+}
+
+
+image {
+/*   z-index: 999;
+ */}
+
+div[is_new="enter"] {
+    background-color: rgba(255, 255, 96, 0.5);
+    
+}
+
+div.table {
+  position:relative;
+  left: 0px;
+  width: calc(30vw - 12px);
+}
+
+svg.triangle {
+    position: absolute;
+   /* width: 20px;
+    height: 20px; */
+    top: 6px;
+    right: 0px;
+    opacity: 0.5;
+    margin: 0 auto;
+    display: block;
+}
+
+svg.radar {
+  z-index : 3;
+}
+
+svg.info {
+  margin: 0 auto;
+  display: block;
+}
+
+div.song_tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: var(--tooltip-song-size);					
+    height: var(--tooltip-song-size);	;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: rgba(116, 116, 116, 0.496);	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;
+    z-index: 2;	
+    display: inline-flex;	
+}
+
+
+/* .table-container::-webkit-scrollbar {
+  width: 10px;
+  background-color: rgba(0, 0, 0, 0.667);
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
+} */
+
+.table-container::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	border-radius: 10px;
+	background-color: rgba(245, 245, 245, 0.503);
+}
+
+.table-container::-webkit-scrollbar
+{
+	width: 12px;
+	background-color: rgba(245, 245, 245, 0);
+}
+
+.table-container::-webkit-scrollbar-thumb
+{
+	border-radius: 10px;
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+	background-color: #555;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: 300;
+  padding: 3px;
+  background: rgba(82, 82, 82, 0.709);
+  /* color: #fff; */
+  border-radius: 2px;
+  pointer-events: none;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.53), 1px 0 0 rgba(255, 255, 255, 0.53), -1px 0 0 rgba(255, 255, 255, 0.53), 0 -1px 0 rgba(255, 255, 255, 0.53);
+  cursor: default;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 80%;
+  line-height: 1;
+  /* color: rgba(145, 141, 141, 0.503); */
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Eastward tooltips */
+.d3-tip.e:after {
+  content: "\25C0";
+/*   margin: -4px 0 0 0;
+ */  top: 10%;
+     /* left: -8px; */
+}
+
+text.axisLabel {
+  fill: white !important;
+}
+
+
+
+/* Style the buttons inside the tab */
+
+
+div.tabsel button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    font-size: 18px;
+    font-family: Roboto, sans-serif;
+}
+
+#btnSongs{
+	background-color: rgba(126, 126, 126, 0.5);
+	color: white;
+	border :  1px solid #ccc;
+	font-family: 'Roboto', sans-serif;
+	font-size : 20px;
+}
+
+#btnCountries{
+  background-color: rgb(66,66,66);
+  color: white;
+  border :  1px solid #ccc;
+  font-family: 'Roboto', sans-serif;
+  font-size : 20px;
+}
+
+/* Change background color of buttons on hover */
+div.tabsel button:hover {
+    background-color: #ddd;
+}
+
+
+/* Create an active/current tablink class */
+div.tabsel button.active {
+    background-color: rgba(126, 126, 126, 0.5);
+}
+
+/* Style the tabsel content */
+.tabcontent {
+
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+	color: white;
+}
+
+.container {
+  overflow: hidden;
+}
+.container > div[class^="column"] {
+  border-left: 2px solid #C2C7C9;
+  border-right: 2px solid #C2C7C9;
+}
+.container div[class^="column"]:first-child {
+  border-left: none;
+}
+.container div[class^="column"]:last-child {
+  border-right: none;
+}
+
+.column div[class^="table-container"] {
+  border-bottom: 1px solid #C2C7C9;
+}
+.column div[class^="stream-container"] {
+  border-top: 1px solid #C2C7C9;
+}

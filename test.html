@@ -7,367 +7,15 @@
   <script src="complete/awesomplete.js" async></script>-->
   <script type="text/javascript" src="complete/autocomplete.js"></script>
   <link rel="stylesheet" href="complete/autocomplete.css"/>
-
+  <link rel="stylesheet" href="css/index.css"/>
 
 </head>
 
-<style>
-
-:root {
-    --main-row-size: 24;
-    --main-font-size: 12;
-    --tooltip-song-size: 250;
-}
-
-body {
-    overflow: hidden;
-    width: 100%;
-    font-family: 'Roboto', sans-serif;
-    font-size: var(--main-font-size);
-}
-
-div.data {
-  position: absolute;
-  padding: 4px 0px;
-  height: 100%;
-  overflow:hidden;
-  display:inline-block;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-left: auto;
-  margin-right: auto;
-  vertical-align: middle;
-  }
-
-div.headers {
-  position: absolute;
-  width: calc(29vw - 12px);
-  border: 2px rgba(75, 75, 75, 0.5);
-  border-style: solid;
-  border-radius: 5px;
-  height: var(--main-row-size);
-}
-
-div.datarow {
-  position: absolute;
-  width: calc(29vw - 12px);
-  border: 1px rgba(0, 0, 0, 0.51) solid;
-  border-radius: 5px;
-  background: rgba(126, 126, 126, 0.5);
-  height: var(--main-row-size);
-  text-align: left;
-}
-
-div.table-container {
-    position: absolute;
-    /*overflow: scroll;*/
-    overflow: hidden;
-    overflow-y: auto;
-    width: 30vw;
-}
-
-div.stream-container {
-    position: absolute;
-    /*overflow: scroll;*/
-    overflow: hidden;
-    width: 30vw;
-}
-
-div[cell_type="p"] {
-/*     display: inline-block; */ 
-    color: rgb(188, 188, 188);
-    left: 0%;
-    width: 35px;
-    text-align: right;
-    margin-left: 5px; 
-    display: flex;    
-}
-div[cell_type="position"] {
-/*     display: inline-block; */ 
-    color: rgb(188, 188, 188);
-    right: 0px;
-    width: 120px;
-    text-align: left;
-    margin-left: 0px; 
-}
-
-
-div[cell_type="country"] {
-    color: rgb(188, 188, 188);
-    left: 0%;
-    width: calc(50% - 5px);
-    margin-left: 5px;
-}
-
-
-div[cell_type="formatted_streams"] {
-    color: rgb(188, 188, 188);
-    width: 100px;
-    left: 40%;
-}
-
-div[cell_type="c_formatted_streams"] {
-    color: rgb(188, 188, 188);
-    width: 20%;
-    left: 80%;
-}
-
-div[cell_type="c_song"] {
-    color: rgb(188, 188, 188);
-    left: 20%;
-    width: calc(60% - 0px);
-    margin-left: 0px;
-}
-
-div[cell_type="c_position"] {
-    color: rgb(188, 188, 188);
-    left: 10%;
-    width: calc(10%);
-    margin-left: 0px;
-}
-
-div[cell_type="n"] {
-    color: rgb(188, 188, 188);
-    left: 10%;
-    width: calc(40% - 5px);
-}
-
-div[cell_type="a"] {
-    color: rgb(188, 188, 188);
-    left: 50%;
-    width: calc(50% - 105px);
-}
-
-div[cell_type="s"] {
-    color: rgb(188, 188, 188);
-    right: 0;
-    width: 100px;
-}
-
-div.info {
-  position: absolute;
-  left: 0px;
-  opacity: 1;
-  z-index: 1;	
-  display: flex;
-  align-items: center;
-}
-
-div.header {
-  position: absolute;
-  padding: 0 0px;
-  overflow: hidden;
-  margin-left: 0px;
-}
-
-div.header[cell_type="p"] {
-  position: absolute;
-  padding: 0 0px;
-  overflow: hidden;
-  margin-left: 5px;
-  width: 10%;
-}
-
-div.header[cell_type="position"] {
-  position: absolute;
-  padding: 0 0px;
-  overflow: hidden;
-  margin-left: 0px; 
-  width: 120px;    
-  right: 0px;    
-  text-align: left;
-}
-
-
-image {
-/*   z-index: 999;
- */}
-
-div[is_new="enter"] {
-    background-color: rgba(255, 255, 96, 0.5);
-    
-}
-
-div.table {
-  position:relative;
-  left: 0px;
-  width: calc(30vw - 12px);
-}
-
-svg.triangle {
-    position: absolute;
-   /* width: 20px;
-    height: 20px; */
-    top: 6px;
-    right: 0px;
-    opacity: 0.5;
-    margin: 0 auto;
-    display: block;
-}
-
-svg.radar {
-  z-index : 3;
-}
-
-svg.info {
-  margin: 0 auto;
-  display: block;
-}
-
-div.song_tooltip {	
-    position: absolute;			
-    text-align: center;			
-    width: var(--tooltip-song-size);					
-    height: var(--tooltip-song-size);	;					
-    padding: 2px;				
-    font: 12px sans-serif;		
-    background: rgba(116, 116, 116, 0.496);	
-    border: 0px;		
-    border-radius: 8px;			
-    pointer-events: none;
-    z-index: 2;	
-    display: inline-flex;	
-}
-
-
-/* .table-container::-webkit-scrollbar {
-  width: 10px;
-  background-color: rgba(0, 0, 0, 0.667);
-}
-
-.table-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 5px;
-} */
-
-.table-container::-webkit-scrollbar-track
-{
-	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-	border-radius: 10px;
-	background-color: rgba(245, 245, 245, 0.503);
-}
-
-.table-container::-webkit-scrollbar
-{
-	width: 12px;
-	background-color: rgba(245, 245, 245, 0);
-}
-
-.table-container::-webkit-scrollbar-thumb
-{
-	border-radius: 10px;
-	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-	background-color: #555;
-}
-
-.d3-tip {
-  line-height: 1;
-  font-weight: 300;
-  padding: 3px;
-  background: rgba(82, 82, 82, 0.709);
-  /* color: #fff; */
-  border-radius: 2px;
-  pointer-events: none;
-  text-align: center;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.53), 1px 0 0 rgba(255, 255, 255, 0.53), -1px 0 0 rgba(255, 255, 255, 0.53), 0 -1px 0 rgba(255, 255, 255, 0.53);
-  cursor: default;
-}
-
-/* Creates a small triangle extender for the tooltip */
-.d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 80%;
-  line-height: 1;
-  /* color: rgba(145, 141, 141, 0.503); */
-  position: absolute;
-  pointer-events: none;
-}
-
-/* Eastward tooltips */
-.d3-tip.e:after {
-  content: "\25C0";
-/*   margin: -4px 0 0 0;
- */  top: 10%;
-     /* left: -8px; */
-}
-
-text.axisLabel {
-  fill: white !important;
-}
-
-
-/* Style the buttons inside the tab */
-div.tab button {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    transition: 0.3s;
-    font-size: 18px;
-    font-family: Roboto, sans-serif;
-}
-
-#btnSongs{
-	background-color: #ccc;
-}
-
-#btnCountries{
-  background-color: #eee;
-}
-
-/* Change background color of buttons on hover */
-div.tab button:hover {
-    background-color: #ddd;
-}
-
-
-/* Create an active/current tablink class */
-div.tab button.active {
-    background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-  /*font-family: 'Titillium Web', sans-serif;*/
-	/*font-family : Roboto;*/
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-top: none;
-  color: #626262;
-	/*color: white;*/
-}
-
-.container {
-  overflow: hidden;
-}
-.container > div[class^="column"] {
-  border-left: 2px solid #C2C7C9;
-  border-right: 2px solid #C2C7C9;
-}
-.container div[class^="column"]:first-child {
-  border-left: none;
-}
-.container div[class^="column"]:last-child {
-  border-right: none;
-}
-
-.column div[class^="table-container"] {
-  border-bottom: 1px solid #C2C7C9;
-}
-.column div[class^="stream-container"] {
-  border-top: 1px solid #C2C7C9;
-}
-
-</style>
 
 <body style="margin: 0; background: #222222">
-  <nav class="main-menu" style="width: 400px; right:0;">
+  <nav class="main-menu" style="width: 400px; right:0;background-color: rgb(66, 66, 66);">
     <div class="menu-content">
-      <div class="tab" style = "height:10vh;">
+      <div class="tabsel" style = "height:10vh;">
         <button id = "btnSongs" class="tablinks" onclick="Open(event, 'Songs')" style = "height:10vh; width: 50%;">Songs</button>
         <button id = "btnCountries" class="tablinks" onclick="Open(event, 'Countries')" style = "height:10vh; width: 50%;">Countries</button>
       </div>
@@ -396,6 +44,7 @@ div.tab button.active {
 	 <div id="controls" ></div>	
   </div>   
 </body>
+
 
 <link rel="stylesheet" type="text/css" href="music.css">
 
@@ -433,12 +82,13 @@ menu.on("mouseenter", function(d) {
       .style("display", "initial")
   })
 
-menu.on("mouseleave", function(d) {
+/*menu.on("mouseleave", function(d) {
     menuContent.style("display", "none")
     menu.transition()
       .duration(250)
       .style("width", "36px")
   })
+*/
 
 /*
 map.append("use")
@@ -909,7 +559,7 @@ let count_list;
 function setCountriesList() {
   
   count_par = d3.select("#Countries").select('p');
-  count_list = count_par.append("ul");
+  count_list = count_par.append("ul").attr('id','double');
 
   let ordered_countries = []
 
@@ -929,8 +579,9 @@ function setCountriesList() {
 
   //Append countries in the list
   for(let i = 0; i < ordered_countries.length; i++) {
-    count_list.append("li").attr("class","country_list").attr("id", ordered_countries[i]["alpha2"]).style("list-style-type", "none")
-    .text(ordered_countries[i].name);
+    count_list.append("li").attr("class","country_list").attr("id", ordered_countries[i]["alpha2"])//.style("list-style-type", "none")
+    .append('a').attr('href', '#')
+	.text(ordered_countries[i].name);
   }
 
   //d3.select("#Countries").style("overflow","scroll");
@@ -1049,8 +700,8 @@ function Open(evt, Selection) {
   }
 
 	
-	d3.selectAll(".tablinks").style("background-color" , "#eee"); 
-	d3.selectAll("#btn"+Selection).style("background-color" , "#ccc"); 
+	d3.selectAll(".tablinks").style("background-color" , "rgb(66,66,66)").style("font-weight", "").style("color", "#a8a6a6"); 
+	d3.selectAll("#btn"+Selection).style("background-color" , "rgba(126, 126, 126, 0.5)").style("font-weight", "bold").style("color", "white"); 
 	
 	// Declare all variables
     let i, tabcontent, tablinks;
@@ -1187,12 +838,6 @@ function resize() {
   width = leftDiv.clientWidth;
   height = window.innerHeight ;
 
-/*
-  navigation
-    .attr("width", width/15)
-    .attr("height", width/30)
-    .attr("transform", getNavigationTransform());
-*/
 
   d3.select("svg")
     .attr("width", width)
@@ -1201,9 +846,7 @@ function resize() {
   worldMap.resize(width, height)
 
   if(streamGraph) {
-    //streamGraph.resize(width/2, height/6)
 
-    //streamGraph.resize(width/2, height/7)
 
     let rightWidth = rightDiv.clientWidth;
     streamGraph.resize(7*rightWidth/10, 2*height/10 - 20)
@@ -1251,45 +894,6 @@ let tip = d3.tip().attr('class', 'd3-tip').offset([20, -330]).html("<div class='
 // Create a local variable for storing previous data.
 let previousData = d3.local();
 
-/*
-d3.json("./jsonsamples/us_with_id.json", function(error, data) {
-
-    //console.log(data);
-    testDataset = data;
-    createToplist(data, {"p": "#","n": "Title", "a": "Artist", "s": "Streams"}, ({p, n, a, s}) => ({p, n, a, s}), "s");
-});*/
-
-
-// Fake data
-/* let tweets = {
-"tweets": [
-{"pos": 1, "title": "I really love seafood.", "author": "author1", "streams": 456546546},
-{"pos": 2, "title": "I take that back, this doesn't taste so good.", "author": "author14", "streams": 546546},
-{"pos": 3, "title": "From now on, I'm only eating cheese sandwiches.", "author": "author1324", "streams": 4645},
-{"pos": 4, "title": "Great workout!", "author": "author1454", "streams": 2354656},
-{"pos": 5, "title": "Spectacular oatmeal!", "author": "6756", "streams": 2354656},
-{"pos": 6, "title": "Amazing traffic!", "author": "author145546", "streams": 2354656},
-{"pos": 7, "title": "Just got a ticket for texting and driving!", "author": "author12343", "streams": 2354656},
-{"pos": 8, "title": "Going to have some boiled eggs.", "author": "author123543", "streams": 2354656},
-{"pos": 9, "title": "Maybe practice some gymnastics.", "author": "author134654", "streams": 2354656},
-{"pos": 10, "title": "@Roy Let's get lunch", "author": "author13453454", "streams": 567567}
-]
-} */
-
-let tweets3 = {
-"tweets": [
-{"p": 1, "n": "Nic", "a": "author1", "s": 346454, "id": 1234324523423},
-{"p": 2, "n": "Bic", "a": "a2", "s": 4345, "id": 1234324523423},
-{"p": 3, "n": "tric", "a": "a14", "s": 2354656, "id": 1234324523423},
-{"p": 4, "n": "pic", "a": "a13454", "s": 2354656, "id": 1234324523423},
-{"p": 5, "n": "Spectacular oatmeal!", "a": "a13454", "s": 2354656, "id": 1234324523423},
-{"p": 6, "n": "Amazing traffic!", "a": "a1356456", "s": 2354656, "id": 1234324523423},
-{"p": 7, "n": "Just got a ticket for texting and driving!", "a": "a1564", "s": 2354656, "id": 1234324523423},
-{"p": 8, "n": "Going to have some boiled eggs.", "a": "a134565465", "s": 2354656, "id": 1234324523423},
-{"p": 9, "n": "Maybe practice some gymnastics.", "a": "a1356546", "s": 2354656, "id": 1234324523423},
-{"p": 10, "n": "@Roy Let's get lunch", "a": "a143564565", "s": 3453454, "id": 1234324523423}
-]
-}
  
 // toplistData - list of json-like elements
 function createToplist(toplistData, keys, filter, sortBy, info = false){  
