@@ -22,7 +22,7 @@
       </div>
 
       <div id="Songs" class="tabcontent" style = "height:90vh;">
-        <h3>Search and select a song !</h3>
+        <h3 class = "info_text">♪ Search a song using the research bar or select a song from the list! ♪</h3>
         <div id="autocomplete"></div>
         <!--
         <input id="song_input" hidden="true" class="awesomplete"/> -->
@@ -31,7 +31,7 @@
       </div>
 
       <div id="Countries" class="tabcontent" style = "height:90vh;  overflow:scroll;">
-        <h3>Click on the map or on the list below to select a country!</h3>
+        <h3 class = "info_text">♪ Click on the map or on the list below to select a country! ♪</h3>
         <p></p> 
       </div>
     </div>
@@ -284,6 +284,7 @@ let zoomCallback = function(alpha) {
   }
 
   topListText.text("Top chart in " + worldMap.spotify_dict[alpha].name)
+	topListInfoText.text("♪ Hover the info icon to show information on the acousticness of the song ♪")
   getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":101}}, countryInfoCallback, [], {_id: 0, id:1, s: 1, d:1, a: 1, n: 1, p:1})
 }
 
@@ -318,7 +319,13 @@ svgStreamGraph
 let topListText = rankPage.append("h2")
   .text("")
   .style("margin", "10px")
-  .style("width", "calc(35vw - 36px)")
+  .style("text-align", "center")
+  .style("color", "white")
+  
+  
+let topListInfoText = rankPage.append("p").attr("class", "info_text")
+  .text("")
+  .style("margin", "10px")
   .style("text-align", "center")
   .style("color", "white")
 
