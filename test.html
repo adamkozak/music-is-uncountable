@@ -419,6 +419,8 @@ let getAllDocuments = function(collection, query, callback, documents, projectio
   })
 }
 
+let legend;
+
 
 let songListCallback = function(list) {
   // Map songs to label and value to be displayed in the autocomplete input
@@ -575,7 +577,7 @@ function showSongInfo(selectedSong) {
       }, 1000);
     
 
-      let legend = setRankLegend(width/20, height/3, colorScales, svg);
+      legend = setRankLegend(width/20, height/3, colorScales, svg);
 
       legend
         .attr("transform", "translate(" + 10 + ", " + (3*height/4 - legend.node().getBoundingClientRect().height/2) + ")")
@@ -780,6 +782,9 @@ function Open(evt, Selection) {
         streamGraph = null;
       }
       mode = 'country'; 
+      if(legend) {
+        legend.remove();
+      }
     }
   }
 	else { 

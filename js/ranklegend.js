@@ -1,5 +1,9 @@
 legendHeightWidthRation = 8;
 
+function removeRankLegend() {
+    d3.selectAll(".ranklegend").remove();
+}
+
 function setRankLegend(width, height, colorScales, svg) {
 
     if(height / width > legendHeightWidthRation) {
@@ -11,7 +15,8 @@ function setRankLegend(width, height, colorScales, svg) {
 
     removeRankLegend(svg)
 
-    let legend = svg.append("g");
+    let legend = svg.append("g")
+        .attr("class", "ranklegend");
 
     let nbScales = Object.keys(colorScales).length;
     let i = 0;
