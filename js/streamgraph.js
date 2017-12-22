@@ -545,13 +545,6 @@ class StreamGraph {
       .attr("class", "yaxis")
       .call(yAxis); 
 
-    this.axishandler.select(".xaxis")
-      .call(xAxis);
-
-    this.axishandler.select(".yaxis")
-      .call(yAxis); 
-
-
     if(this.playing) {
       this.drawPauseButton();
     } else {
@@ -591,7 +584,7 @@ class StreamGraph {
   }
 
   remove() {
-    //d3.selectAll(".st-tooltip").remove();
+    this.tooltip.remove();
     this.streamGraph.remove();
   }
 
