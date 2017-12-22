@@ -159,7 +159,10 @@
 								Our first idea was to create a static toplist, as it can be seen on Spotify and many other websites. But that was to simple.
 							</p>
 							<p>
-								We decided to bring some life to it and make it move everytime a new toplist was generated. Basically user can compare most popular songs from different regions just by looking at the toplist. All transitions are based on difference between next and previous toplist. First records, that are missing in next toplist vanish, then songs present in both rankings update thier place and, in the end, new ones come with yellow colour as an indicator of being new.
+								We decided to bring some life to it and make it move everytime. The user can compare most popular songs from different regions just by looking at the toplist. 
+								All transitions are based on difference between next and previous weeks toplist. The "old" songs that were present in the week after but not in the week in question vanish. 
+								The songs present in the toplist during both weeks update their ranking. Finally, the "new" songs that were not present in the week before but are in the week in question 
+								are displayed in a yellow color. 
 							<p>
 						</div>
 						<div class="image">
@@ -202,10 +205,10 @@
 						<div class="content">
 							<h2>New colours</h2>
 							<p>
-								Next step consisted of fixing the toplist colours to fit to the rest of visualization.
+								Next step consisted of fixing the toplist colours to match the rest of the website. 
 							</p>
 							<p>
-								We decided to stick with nice grey palette that fits the map very well.
+								We chose a nice grey palette like in the map and the rest of the visualization. 
 							</p>
 
 						</div>
@@ -218,7 +221,7 @@
 						<div class="content">
 							<h2>Radar plots</h2>
 							<p>
-								Spotify API provides a lot of information abouts songs. One of them are audio features.
+								Spotify API provides a lot of information abouts songs, for example, the audio features.
 							</p>
 							<p>
 								Audio features describe songs with a comparable metrics like: 
@@ -231,7 +234,7 @@
 								</ul>
 							</p>
 							<p>
-								The best way to present those information is to use radar plot.
+								The best way to present those information is to use a radar plot.
 							<p>
 						</div>
 						<div class="image">
@@ -242,9 +245,9 @@
 					<section class="wrapper style1 align-center">
 						<div class="inner">
 							<h2>Radar plot and toplist integration</h2>
-							<p>Having two working modules we had to make them work together. Each song as of now has an information icon that, if hovered, presents audio features.</p>
+							<p>Having two working modules, we needed to make them work together. Each song has an information icon that, if hovered, displays some audio features for the song.</p>
 							<p>
-								User can have a general overview by looking at the area of the plot, but he can also inspect all values by hovering each point.
+								The user can have a general overview by looking at the area of the plot, or, he can also inspect all values by hovering each point.
 							</p>
 						</div>
 						
