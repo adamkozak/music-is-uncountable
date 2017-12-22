@@ -3272,7 +3272,7 @@
 			-webkit-flex-shrink: 1;
 			-ms-flex-shrink: 1;
 			flex-shrink: 1;
-			width: 50%;
+			width: 45%;
 			max-width: 48rem;
 			margin: 0 auto;
 		}
@@ -3287,10 +3287,41 @@
 			-ms-flex-shrink: 0;
 			flex-shrink: 0;
 			border-radius: 0;
-			width: 50%;
+			width: 55%;
+		}
+
+		.banner.style1 .imagegif {
+			-moz-flex-grow: 0;
+			-webkit-flex-grow: 0;
+			-ms-flex-grow: 0;
+			flex-grow: 0;
+			-moz-flex-shrink: 0;
+			-webkit-flex-shrink: 0;
+			-ms-flex-shrink: 0;
+			flex-shrink: 0;
+			border-radius: 0;
+			width: 55%;
 		}
 
 			.banner.style1 .image img {
+				-moz-object-fit: cover;
+				-webkit-object-fit: cover;
+				-ms-object-fit: cover;
+				object-fit: cover;
+				-moz-object-position: center;
+				-webkit-object-position: center;
+				-ms-object-position: center;
+				object-position: center;
+				display: block;
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				border-radius: 0;
+			}
+
+			.banner.style1 .imagegif img {
 				-moz-object-fit: cover;
 				-webkit-object-fit: cover;
 				-ms-object-fit: cover;
@@ -3373,6 +3404,12 @@
 					height: 45vh;
 				}
 
+				.banner.style1 .imagegif {
+					width: 100%;
+					max-width: 100%;
+					height: 30vh;
+				}
+
 		}
 
 		.banner.style1.fullscreen {
@@ -3387,6 +3424,10 @@
 
 				.banner.style1.fullscreen .image {
 					height: 50vh;
+				}
+
+				.banner.style1.fullscreen .imagegif {
+					height: 40vh;
 				}
 
 			}
@@ -3439,6 +3480,20 @@
 			object-position: right;
 		}
 
+
+		.banner.style1.image-position-left .imagegif img {
+			-moz-object-position: left;
+			-webkit-object-position: left;
+			-ms-object-position: left;
+			object-position: left;
+		}
+
+		.banner.style1.image-position-right .imagegif img {
+			-moz-object-position: right;
+			-webkit-object-position: right;
+			-ms-object-position: right;
+			object-position: right;
+		}
 /* Banner (style2) */
 
 	.banner.style2 {
