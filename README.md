@@ -11,11 +11,11 @@ This repo contains all our project for the Data Visualization course at EPFL [CO
 
 ## Visualization
 
-The final visualization is available [here](nathanquinteiro.github.io/music-is-uncountable/)
+The final visualization is available [here](https://nathanquinteiro.github.io/music-is-uncountable/)
 
 ## Process Book
 
-The process book summing up how we designed our Viz is available [here](nathanquinteiro.github.io/music-is-uncountable/blog)
+The process book summing up how we designed our Viz is available [here](https://nathanquinteiro.github.io/music-is-uncountable/blog)
 
 ## ScreenCast 
 
