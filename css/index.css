@@ -337,6 +337,10 @@ text.axisLabel {
   fill: white !important;
 }
 
+text.tooltip {
+  fill: white !important;
+}
+
 
 
 /* Style the buttons inside the tab */

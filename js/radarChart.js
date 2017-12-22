@@ -286,6 +286,7 @@ const RadarChart = function RadarChart(parent_selector, data, options) {
 		.attr('y', 0)
 		.style("font-size", "12px")
 		.style('display', 'none')
+		.style("color", 'white')
 		.attr("text-anchor", "middle")
 		.attr("dy", "0.35em");
 
