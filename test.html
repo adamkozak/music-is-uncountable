@@ -320,7 +320,7 @@ let zoomCallback = function(alpha) {
   }
 
   topListText.text("Top chart in " + worldMap.spotify_dict[alpha].name)
-	topListInfoText.text("♪ Hover the info icon to show information on the acousticness of the song ♪")
+	topListInfoText.text("♪ Hover the info icon to show some audio features of the song ♪")
   getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":101}}, countryInfoCallback, [], {_id: 0, id:1, s: 1, d:1, a: 1, n: 1, p:1})
 }
 
