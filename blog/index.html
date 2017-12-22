@@ -39,7 +39,7 @@
 					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right" id="first">
 						<div class="content">
 							<h2>Focus on a song</h2>
-							<p>Our first objective was to create a visualization focusing on a song, highlighting how its popularity spread around the world and how it faded.</p>
+							<p>Our first objective was to create a visualization focusing on a song, highlighting how its popularity spreads around the world and how it faded.</p>
 							<p>We imagined displaying a histogram of weekly streams for the song, showing how its popularity evolved through the year.</p>
 							<p>To highlight the popularity according to the region we had the idea to display a world map with circles on the countries, with area varying according to the number of weekly streams, and inside the circle the ranking of the song in the country's chart.</p>
 
@@ -51,9 +51,9 @@
 
 					<section class="banner style1 orient-left content-align-left image-position-right fullscreen onload-image-fade-in onload-content-fade-right">
 						<div class="content">
-							<h2>First version</h2>
+							<h2>First version - Overview</h2>
 							<p> The first thing we did was to upload a map of the world. Then we added a research bar to allow the user to look for a song and select it. 
-								When the music is selected, the total number of streamings in each country is calculated and the information displays when hovering a country.</p>
+								When the music is selected, the total number of streamings in each country is computed and the information displays when hovering a country.</p>
 							
 						</div>
 						<div class="image">
@@ -64,8 +64,8 @@
 				<!-- Five -->
 					<section class="spotlight style1 orient-right content-align-right image-position-center onscroll-image-fade-in">
 						<div class="content">
-							<h2>First version</h2>
-							<p> When the user hover a country, the total number of streaming for the chosen music is displayed.</p>
+							<h2>First version - Number of streamings</h2>
+							<p> When the user hover a country, the total number of streamings for the chosen music is displayed.</p>
 							
 						</div>
 						<div class="image">
@@ -75,8 +75,9 @@
 					
 					<section class="banner style1 orient-left content-align-left image-position-right fullscreen onload-image-fade-in onload-content-fade-right">
 						<div class="content">
-							<h2>First version</h2>
-							<p> The user could also click on a country in the map, which triggers a zoom and let a window appear, suggesting to click a on a button to display two rankings (one displaying the best songs and the other displaying the best artists in the country selected).</p>
+							<h2>First version - Zoom and information on country</h2>
+							<p> The user could also click on a country in the map, which triggers a zoom and let a window appear, 
+							suggesting to click on a button to display two rankings (one displaying the best songs and the other displaying the best artists in the country selected).</p>
 							
 						</div>
 						<div class="image">
@@ -87,6 +88,8 @@
 				<!-- Three -->
 					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right" id="first">
 						<div class="content">
+						
+							<h2>On the way to version 2</h2>
 							<h2>2-pages design</h2>
 							<p>When focusing on a song, we wanted also to provide insight about its popularity. We decided to sort the countries by weekly streams and display a ranking.</p>
 							<p>We designed a visualization in two pages with: 
@@ -97,7 +100,7 @@
 								This design aimed at allowing the user to switch from one page ton another easily by scrolling or clicking on a button.
 							</p>
 							<p>
-								A menu on the right would remains on screen at all time allowing the user to change the song to display.
+								A menu on the right would remain on screen at all time allowing the user to change the song to display.
 							</p>
 						</div>
 						<div class="image">
@@ -129,13 +132,63 @@
 					</section>
 
 				
-
-				<!-- Five -->
-					<section class="wrapper style1 align-center">
-						<div class="inner">
-							<h2>Massa sed condimentum</h2>
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi id ante sed ex pharetra lacinia sit amet vel massa. Donec facilisis laoreet nulla eu bibendum. Donec ut ex risus. Fusce lorem lectus, pharetra pretium massa et, hendrerit vestibulum odio lorem ipsum.</p>
+				
+					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right">
+						<div class="content">
+							<h2>Version 2 - Overview</h2>
+							<p> For the second version of our website, we decided to have a table on the right of the map that allows the user to first choose whether they want information
+							on countries or songs. Once the tab is clicked, the user can either select a song by taping and selecting it in the search bar or select a country from the
+							list of country to display information.</p>
+							<p> We decided to trigger the zoom on a country when the user clicks on the name in the list instead of directly on the map to make it easier to select 
+							small countries like Switzerland. In our final version, we will see that we then decided to keep both possibilities (click on the name in the list and directly
+								on the map).</p>
 						</div>
+						<div class="image">
+							<img src="images/version_2_1.png" alt="" />
+						</div>
+					</section>
+					
+					
+					<section class="banner style1 orient-left content-align-left image-position-right fullscreen onload-image-fade-in onload-content-fade-right">
+						<div class="content">
+							<h2>Version 2 - Song selection</h2>
+							<p>
+								When a song is selected, a timeline representing the number of streamings over time of this song in each continent is displayed on the top of the map, at the bottom
+								of the webpage. The user can then click on the arrow to go down in the website, where a table shows further information on the song. (In the picture, the elements of
+								the table were not linked to the dataset yet and some random data was displayed just for testing.)
+							</p>
+							
+						</div>
+						<div class="image">
+							<img src="images/version_2_2.png" alt="" />
+						</div>
+					</section>
+					
+					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right" id="first">
+						<div class="content">
+						
+							<h2>On the way to version 3</h2>
+							<h4>1-page design</h4>
+							<p>We decided that it would give a better user experience if everything is displayed on the same page, so we resized and repositioned the different elements
+							of our previous versions to make them all fit in the webpage.Therefore, we decided to get rid of the arrow and to directly put the below table on the right of 
+							the map and to hide the list of countries when the mouse was not hovering over it. 
+							</p>
+							<h4>Song or Country mode</h4>
+							<p>To keep interactivity with the map, we decided to re implement the zoom on a country by clicking directly on it in the map. However, to avoid confusion for the user,
+							we decided to allow them to click on the map only if the tab "countries" is opened (the user is in "country mode").
+							</p>
+							<h4>Design and colors</h4>
+							<p>
+								Relying on design principles, we decided to change the colours of countries and use colors with the same saturation and brightness
+								for each continent to make the comparison between them easier.
+							</p>
+						</div>
+						<div class="image" >
+							<img src="images/version_3_0.png" alt="" />
+						</div>
+					</section>
+					
+					
 
 						<!-- Gallery -->
 							<div class="gallery style2 medium lightbox onscroll-fade-in">
