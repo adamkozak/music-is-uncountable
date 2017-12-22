@@ -766,7 +766,9 @@ function setExampleSongs() {
   }
 }
 
-setExampleSongs();
+
+client.login().then(() => setExampleSongs())
+
 
 // Creates the tabs and selections 
 let mode = 'song';
