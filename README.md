@@ -20,5 +20,3 @@ The process book summing up how we designed our Viz is available [here](nathanqu
 ## ScreenCast 
 
 A video presenting the Viz is available [here](https://youtu.be/UfqdKm_qH54)
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/UfqdKm_qH54" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
