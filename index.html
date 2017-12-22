@@ -54,7 +54,7 @@
 <!--<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">-->
 
 
-<link rel="stylesheet" type="text/css" href="music.css">
+<link rel="stylesheet" type="text/css" href="css/music.css">
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
@@ -68,8 +68,8 @@
 <script src="js/ranklegend.js"></script>
 <script src="js/worldmap.js"></script>
 <!--<script src="stitch.js"></script>-->
-<script src="radarChart.js"></script>	
-<script src="tip.js"></script>
+<script src="js/radarChart.js"></script>	
+<script src="js/tip.js"></script>
 <script>
 
 
@@ -221,107 +221,116 @@ let worldDataReadyCallback = function() {
 
 let zoomCallback = function(alpha) {
   show_image(null);
-  let countryInfoCallback = function(timeLine) {
-    data = timeLine.map(function(x) {
-      return {
-        "value": parseInt(x.s),
-        "id": x.id,
-        "artist": x.a,
-        "song": removeParentheses(x.n),
-        "position": x.p,
-        "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
+  removeTopList();
+  topListText.text("")
+  topListInfoText.text("")
+  if(streamGraph) {
+    streamGraph.remove();
+    streamGraph = null;
+  }
+  if(alpha) {
+
+    let countryInfoCallback = function(timeLine) {
+      data = timeLine.map(function(x) {
+        return {
+          "value": parseInt(x.s),
+          "id": x.id,
+          "artist": x.a,
+          "song": removeParentheses(x.n),
+          "position": x.p,
+          "date": x.d.getFullYear() + "/" + ("0" + (x.d.getMonth() + 1)).slice(-2) + "/" + ("0" + x.d.getDate()).slice(-2)
+        }
+      });
+
+      datesArray = [];
+
+      for(let i = 1; i < 34; i++) {
+        let d = new Date(lowestDate.getTime());
+        d.setDate(d.getDate() + i*7);
+        datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
       }
-    });
 
-    datesArray = [];
-
-    for(let i = 1; i < 34; i++) {
-      let d = new Date(lowestDate.getTime());
-      d.setDate(d.getDate() + i*7);
-      datesArray.push(d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2))
-    }
-
-    timelapseData = []
-    for(let j = 0; j < datesArray.length; j++) {
-      timelapseData.push({"date": datesArray[j]})
-    }
-
-    for(let i = 0; i < data.length; i++) {
-      let dateIdx = datesArray.indexOf(data[i].date)
-      if(dateIdx > -1) {
-        timelapseData[dateIdx][data[i].song] = data[i];
+      timelapseData = []
+      for(let j = 0; j < datesArray.length; j++) {
+        timelapseData.push({"date": datesArray[j]})
       }
-    }
 
-    let streamData = []
-    for(let j = 0; j < datesArray.length; j++) {
-      streamData.push({"date": datesArray[j]})
-      streamData[j]["Streams"] = 0
-    }
-
-    for(let i = 0; i < data.length; i++) {
-      let dateIdx = datesArray.indexOf(data[i].date)
-      if(dateIdx > -1) {
-        streamData[dateIdx]["Streams"] += data[i].value
-      }
-    }
-
-    let format = d3.timeParse("%Y/%m/%d");
-
-    streamData.forEach(function(d) {
-      d.date = format(d.date);
-    });
-
-    let topListData = getCountryYearlyTopListData(timelapseData);
-
-    createToplist(topListData, {"c_position": "#", "c_song": "Song", "c_formatted_streams": "Streams"}, ({c_position, c_song, c_formatted_streams}) => ({c_position, c_song, c_formatted_streams}), "streams", true);
-
-    console.log(streamData)
-
-    if(streamGraph) {
-      streamGraph.remove();
-
-      //streamGraphTransition(1000);
-      //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
-    }
-
-    streamGraphListener = {
-      buttonPressed(playing, week) {
-        if(playing) {
-          startCountryTimeLapse(timelapseData, week)
-        } else {
-
+      for(let i = 0; i < data.length; i++) {
+        let dateIdx = datesArray.indexOf(data[i].date)
+        if(dateIdx > -1) {
+          timelapseData[dateIdx][data[i].song] = data[i];
         }
       }
+
+      let streamData = []
+      for(let j = 0; j < datesArray.length; j++) {
+        streamData.push({"date": datesArray[j]})
+        streamData[j]["Streams"] = 0
+      }
+
+      for(let i = 0; i < data.length; i++) {
+        let dateIdx = datesArray.indexOf(data[i].date)
+        if(dateIdx > -1) {
+          streamData[dateIdx]["Streams"] += data[i].value
+        }
+      }
+
+      let format = d3.timeParse("%Y/%m/%d");
+
+      streamData.forEach(function(d) {
+        d.date = format(d.date);
+      });
+
+      let topListData = getCountryYearlyTopListData(timelapseData);
+
+      createToplist(topListData, {"c_position": "#", "c_song": "Song", "c_formatted_streams": "Streams"}, ({c_position, c_song, c_formatted_streams}) => ({c_position, c_song, c_formatted_streams}), "streams", true);
+
+
+      if(streamGraph) {
+        streamGraph.remove();
+
+        //streamGraphTransition(1000);
+        //histogram = chart(width, height/6, streamData, "palette", svg, histogram);
+      }
+
+      streamGraphListener = {
+        buttonPressed(playing, week) {
+          if(playing) {
+            startCountryTimeLapse(timelapseData, week)
+          } else {
+
+          }
+        }
+      }
+
+      let rightWidth = rightDiv.clientWidth;
+      streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, ["#A2A2A2"], null, ["Streams"])
+
+      streamGraph.streamGraph      
+        .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  (svgStreamGraph.node().getBoundingClientRect().height/5 + 300) + ")")
+
+
+      streamGraphTransition(1000); 
+
+      setTimeout(function() {
+
+        width = leftDiv.clientWidth;
+        height = window.innerHeight ;
+        if(streamGraph) {
+
+
+          let rightWidth = rightDiv.clientWidth;
+          streamGraph.resize(7*rightWidth/10, 2*height/10 - 20)
+          streamGraphTransition(0);
+        }
+      }, 1000);
+      
     }
 
-    let rightWidth = rightDiv.clientWidth;
-    streamGraph = new StreamGraph(7*rightWidth/10, 2*height/10 - 20, streamData, svgStreamGraph, streamGraphListener, ["#A2A2A2"], null, ["Streams"])
-
-    streamGraph.streamGraph      
-      .attr("transform", "translate(" + svgStreamGraph.node().getBoundingClientRect().width / 5 + "," +  (svgStreamGraph.node().getBoundingClientRect().height/5 + 300) + ")")
-
-
-    streamGraphTransition(1000); 
-
-    setTimeout(function() {
-
-      width = leftDiv.clientWidth;
-      height = window.innerHeight ;
-      if(streamGraph) {
-
-
-        let rightWidth = rightDiv.clientWidth;
-        streamGraph.resize(7*rightWidth/10, 2*height/10 - 20)
-        streamGraphTransition(0);
-      }
-    }, 1000);
-    
+    topListText.text("Top chart in " + worldMap.spotify_dict[alpha].name)
+  	topListInfoText.text("♪ Hover the info icon to show some audio features of the song ♪")
+    getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":101}}, countryInfoCallback, [], {_id: 0, id:1, s: 1, d:1, a: 1, n: 1, p:1})
   }
-
-  topListText.text("Top chart in " + worldMap.spotify_dict[alpha].name)
-	topListInfoText.text("♪ Hover the info icon to show some audio features of the song ♪")
-  getAllDocuments(db.collection('entries'), {"r":alpha, "p":{"$lt":101}}, countryInfoCallback, [], {_id: 0, id:1, s: 1, d:1, a: 1, n: 1, p:1})
 }
 
 let worldMap = new WorldMap(width, height, svg, continentColorsDict, CountryContinentDict, worldDataReadyCallback, zoomCallback);
@@ -534,7 +543,6 @@ function showSongInfo(selectedSong) {
       createToplist(topListData, {"country": "Country", "formatted_streams": "Streams"}, ({country, formatted_streams, position}) => ({country, formatted_streams}), "streams", false);
 
 
-      console.log(streamData)
       if(streamGraph) {
         streamGraph.remove();
       }
@@ -778,6 +786,7 @@ function Open(evt, Selection) {
     if(mode != 'country') {
       removeTopList();
       topListText.text("")
+      topListInfoText.text("")
       worldMap.drawMap()
       if(streamGraph) {
         streamGraph.remove();
@@ -793,7 +802,7 @@ function Open(evt, Selection) {
     if(mode != 'song') {
       removeTopList();
       topListText.text("")
-	  topListInfoText.text("")
+	    topListInfoText.text("")
       show_image(null);
       if(streamGraph) {
         streamGraph.remove();
@@ -912,10 +921,7 @@ function startCountryTimeLapse(data, week) {
 
   let speed = streamGraph.timelapseSpeed;
 
-  console.log(week)
-  console.log(data)
   let topListData = getCountryTopListData(data[week]);
-  console.log(topListData)
 
   updateToplist(speed, topListData, {"c_position": "#", "c_song": "Song", "c_formatted_streams": "Streams"}, ({c_position, c_song, c_formatted_streams}) => ({c_position, c_song, c_formatted_streams}), "streams", true);
 
@@ -1045,7 +1051,6 @@ function createToplist(toplistData, keys, filter, sortBy, info = false){
       .attr("class", "headers")
       //.style("height", data_row_size + "px");
 
-  console.log(d3.entries(keys))
 
   head.selectAll("div.header")
       .data(d3.entries(keys))

@@ -41,7 +41,7 @@ class WorldMap {
 		this.zoomCallback = zoomCallback;
 
 		// Load the TopoJSON 
-		d3.json("world-110m.json", function(error, w) {
+		d3.json("Datasets/world-110m.json", function(error, w) {
 		  if (error) throw error;
 
 		  _this.world = w;
@@ -52,7 +52,7 @@ class WorldMap {
 		  _this.countries.push({"id":344})
 
 		  //let neighbors = topojson.neighbors(world.objects.countries.geometries)
-		  d3.json("id_dict.json", function(error, dict) {
+		  d3.json("Datasets/id_dict.json", function(error, dict) {
 		    _this.countries.forEach(function(d, i) {
 		      if(dict["" + parseInt(d.id)]) {
 		        d.name = dict[d.id][1]
@@ -253,7 +253,10 @@ class WorldMap {
 		
 		let final_country = country;
 
-		if (this.active == AlphA) return this.reset(AlphA);
+		if (this.active == AlphA) {
+			this.zoomCallback(null);
+			return this.reset(AlphA);
+		}
 
 		this.zoomCallback(AlphA);
 
@@ -320,7 +323,6 @@ class WorldMap {
 		 
 	// Function that resets the properties of the country and dezooms when re-clicked
 	reset(a) {
-		console.log("reset")
 
 		let strokeWidth = (this.width/2000.0) 
 

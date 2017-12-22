@@ -332,12 +332,7 @@ class StreamGraph {
       //.offset(d3.stackOffsetSilhouette);
       .offset(d3.stackOffsetNone);
 
-
-    console.log(this.keys)
-
     this.layers = this.stack(this.data)
-
-    console.log(this.layers)
 
     this.x = d3.scaleTime()
       .range([0, this.graph_width])
@@ -596,7 +591,7 @@ class StreamGraph {
   }
 
   remove() {
-    d3.selectAll(".tooltip").remove();
+    //d3.selectAll(".st-tooltip").remove();
     this.streamGraph.remove();
   }
 
