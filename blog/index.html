@@ -131,6 +131,41 @@
 						</div>
 					</section>
 			
+
+					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right" id="first">
+						<div class="content">
+							<h2>Toplist, toplist everywhere!</h2>
+							<p>
+								As can be seen on almost every picture above, there is a toplist. That is the second main part of our visualization. Who would imagine presenting songs without a toplist?!
+							</p>
+							<p>
+								Our first idea was to create a static toplist, as it can be seen on Spotify and many other websites. But that was to simple.
+							</p>
+							<p>
+								We decided to bring some life to it and make it move everytime a new toplist was generated. Basically user can compare most popular songs from different regions just by looking at the toplist. All transitions are based on difference between next and previous toplist. First records, that are missing in next toplist vanish, then songs present in both rankings update thier place and, in the end, new ones come with yellow colour as an indicator of being new.
+							<p>
+						</div>
+						<div class="image">
+							<img src="images/toplist_v1_tall.gif" alt="" />
+						</div>
+
+					</section>
+
+					<section class="banner style1 orient-left content-align-left image-position-right fullscreen onload-image-fade-in onload-content-fade-right">
+						<div class="content">
+							<h2>New colours</h2>
+							<p>
+								Next step consisted of merging the toplist with the rest of visualization and changing colours.
+							</p>
+							<p>
+								We decided to stick with nice grey palette that fits the map very well.
+							</p>
+
+						</div>
+						<div class="image">
+							<img src="images/taller_toplist.png" alt="" />
+						</div>
+					</section>
 				
 					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right">
 						<div class="content">
@@ -186,6 +221,29 @@
 							<img src="images/version_3_0.png" alt="" />
 						</div>
 					</section>
+					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right" id="first">
+						<div class="content">
+							<h2>Radar plots</h2>
+							<p>
+								Spotify API provides a lot of information abouts songs. One of them are audio features.
+							</p>
+							<p>
+								Audio features describe songs with a comparable metrics like: 
+								<ul>
+									<li>acousticness</li>
+									<li>danceability</li>
+									<li>energy</li>
+									<li>instrumentalness</li>
+									<li>etc.</li>
+								</ul>
+							</p>
+							<p>
+								The best way to present those information is to use radar plot.
+							<p>
+						</div>
+						<div class="image">
+							<img src="images/radar_plot.png" alt="" />
+						</div>
 
 
 					<section class="banner style1 orient-left content-align-left image-position-right fullscreen onload-image-fade-in onload-content-fade-right">
@@ -202,11 +260,24 @@
 								A few trendy and popular songs are proposed to the user in the "song" menu. He can simply click on one of them to easily get the informations about it.
 							</p>
 							
+					</section>
+
+				<!-- Five -->
+					<section class="wrapper style1 align-center">
+						<div class="inner">
+							<h2>Radar plot and toplist integration</h2>
+							<p>Having two working modules we had to make them work together. Each song as of now has an information icon that, if hovered over, presents audio features.</p>
+							<p>
+								User can have a general overview by looking at the area of the plot, but he can also inspect all values by hovering over each point.
+							</p>
 						</div>
 						<div class="image">
 							<img src="images/version_3_1.png" alt="" />
 						</div>
 					</section>
+						<div class="image">
+							<img src="images/toplist_with_radar_plot.png" alt="" />
+						</div>
 
 
 					<section class="banner style1 orient-right content-align-right image-position-left fullscreen onload-image-fade-in onload-content-fade-right" id="first">
