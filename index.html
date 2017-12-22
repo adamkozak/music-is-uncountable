@@ -1051,18 +1051,14 @@ window.addEventListener("resize", resize);
 
 d3.select(self.frameElement).style("height", height + "px");
 
+// Get style information from CSS style
 let style = getComputedStyle(document.body);
 let row_size = +style.getPropertyValue('--main-row-size') + 4;
 let data_row_size = row_size - 2;
-
 let spotify_green = style.getPropertyValue('--main-spotify-green');
-let triangle_width = 13;
-let triangle_height = 13;
-let indexx = 1;
-let uniqueID = 0;
-let testDataset = [];
 
-		
+/*  Helper function form radar plot parsing (key, value) json pairs to (axis, value) pairs
+ In other words change the key name from "key" to "axis" and return it in proper format */
 function parseFeatures(features){
   let temp = JSON.parse(JSON.stringify(features));
   let temp2 = {};
@@ -1076,39 +1072,48 @@ let div_toplist = d3.select("body").append("div")
     .attr("class", "song_tooltip")				
     .style("opacity", 0);
 
-let tip = d3.tip().attr('class', 'd3-tip').offset([20, -330]).html("<div class='radar'></div>");
+// Create tooltip for radarplot
+let tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([20, -330])
+  .html("<div class='radar'></div>");
 
-// Create a local variable for storing previous data.
-let previousData = d3.local();
-
+// Removes toplist
 function removeTopList() {
   d3.select(".table").remove();
 }
-// toplistData - list of json-like elements
+
+/* Function that updates toplist with a new data
+Params:
+toplistData - data containing new toplist (list of json-like elements)
+keys - dictionary mapping database headers to table headers
+filter - data filtering rule
+sortBy - keys for sorting data
+info - True|False - whether to show info icon with radar plot
+*/
 function createToplist(toplistData, keys, filter, sortBy, info = false){  
+  // Remove previous instance of toplist
   removeTopList();
 
+  // Sort entries by given key
   toplistData = toplistData.sort(function(a, b){
       if(+a[sortBy] < +b[sortBy]) return 1;
       if(+a[sortBy] > +b[sortBy]) return -1;
       return 0;
   });
 
+  // Take only 15 records
   toplistData = toplistData.slice(0,15);
 
-  //console.log(JSON.stringify(toplistData));
-
-  //var keyValues = d3.keys(toplistData[0]);
-  //let keys = {"p": "#","n": "Title", "a": "Artist", "s": "Streams"};
+  // Create toplist instance
   let head = rankPage
       .append("div")
       .attr("class", "table")
       .style("margin-left", "10px")
       .append("div")
-      .attr("class", "headers")
-      //.style("height", data_row_size + "px");
+      .attr("class", "headers");
 
-
+  // Append toplist header
   head.selectAll("div.header")
       .data(d3.entries(keys))
       .enter()
@@ -1117,16 +1122,16 @@ function createToplist(toplistData, keys, filter, sortBy, info = false){
       .attr("cell_type", (d) => {return d.key;})        
       .html((d, i) => {return d.value;});
 
-
+  // For each toplist record add a row
   let data_rows = d3.select("div.table").selectAll("div.datarow")
       .data(toplistData, (d) => {return d.id;})
       .enter()
       .append("div")
       .attr("class", "datarow")
-      .attr("id", function(d) { return uniqueID++; })
       .style("height", data_row_size + "px")
       .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";});
 
+  // Add cells with information for each added row
   data_rows.selectAll("div.data")
       .data((d) => { return d3.entries(filter(d));})
       .enter()
@@ -1135,6 +1140,7 @@ function createToplist(toplistData, keys, filter, sortBy, info = false){
       .attr("cell_type", (d) => {return d.key;})
       .html((d) => {return d.value;});
 
+  // Create an info icon and radar plot if info set to True
   if(info) {
 
     let info_image = data_rows
@@ -1154,67 +1160,31 @@ function createToplist(toplistData, keys, filter, sortBy, info = false){
           d3.select(".d3-tip").transition().style("opacity", "1");   
           tip.show(d);             
           let radarCallback = function(features) {
-            //console.log(features)
             if(features[0]) {
-              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
-            }
+              let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);}
           }
-
+          // Get data from database to create radar plot
           getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})
-
         })
         .on('mouseout', function(d) {
-          d3.select(".d3-tip").transition().duration(1000).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
-          
+          d3.select(".d3-tip")
+            .transition()
+            .duration(1000)
+            .style("opacity", "0")
+            .on("end", () => {d3.select("svg.radar").remove(); tip.hide;});         
         });
-        /* .on("mouseover", function(d) {		
-            div_toplist.transition()		
-                .duration(200)		
-                .style("opacity", .9);		
-            div_toplist	
-                .style("left", (d3.event.pageX + 10) + "px")		
-                .style("top", (d3.event.pageY - 10) + "px");
 
-            let svg_radar2 = RadarChart(".song_tooltip", data_radar, radarChartOptions2);
-          })					
-        .on("mouseout", function(d) {		
-            div_toplist.transition()		
-                .duration(500)		
-                .style("opacity", 0);}) */
+    // Initialize tooltip for radar plot
     info_image.call(tip);
 
+    // Assign listeners for tooltip
     d3.select(".d3-tip")
         .on('mouseover', function(d) { d3.select(".d3-tip").transition().style("opacity", "1");})
         .on('mouseout', function(d) {d3.select(".d3-tip").transition().duration(1000).style("opacity", "0")
             .on("end", () => {d3.select("svg.radar").remove(); tip.hide;}); });
   }
-
-  //data_rows.on("click", showDetails);
-
-  d3.selectAll("[cell_type = p]")
-      .each(function(d) { previousData.set(this, d.value) });
-}    
-
-function transitionSheet() {
-    d3.selectAll("div.datarow")
-    .transition()
-    .duration(2000)
-    .style("top", (d,i) => {return (row_size + ((d.p-1) * row_size)) + "px";});
-    }
-
-function sortSheet() {
-    var dataset = d3.selectAll("div.datarow").data();
-    dataset.sort((a,b) => {return a.p > b.p;
-        });
-
-    d3.selectAll("div.datarow")
-    .data(dataset, (d) => {return d.title;})
-    .transition()
-    .duration(2000)
-    .style("top", (d,i) => {return (row_size + ((d.p-1) * row_size));});
-    }   
-
-
+}  
+  
 function getSongTopListData(weekData) {
   let temp = [];
   for(key in weekData) {
@@ -1354,57 +1324,66 @@ function getCountryYearlyTopListData(data) {
   })
 
   return topListData;
-
 }
 
+/* Function that updates toplist with a new data
+Params:
+speed - transition speed
+newTopList - data containing new toplist
+keys - dictionary mapping database headers to table headers
+filter - data filtering rule
+sortBy - keys for sorting data
+info - True|False - whether to show info icon with radar plot
+*/
 function updateToplist(speed, newToplist, keys, filter, sortBy, info = false){ 
-    speed = Math.max(speed, 0.35)
+    // Set transition speed
+    speed = Math.max(speed, 0.35);
 
+    // Sort records by given key
     newToplist = newToplist.sort(function(a, b){
       if(+a[sortBy] < +b[sortBy]) return 1;
       if(+a[sortBy] > +b[sortBy]) return -1;
       return 0;
     });
 
+    // Keep only15 records
     newToplist = newToplist.slice(0,15);
 
+    // Assign index value to each element of a new toplist
     newToplist = newToplist.map(function(d, i) {
       d["value"] = i;
       return d;
-    })
+    });
 
-    //console.log(newToplist);
-
-    // Update those that are in the table
+    // Update rows that are in the table
     let rows = d3.select("div.table")
         .selectAll("div.datarow")
         .data(newToplist, (d) => {return d.id;})
-        .call(savePreviousData)
         .attr("is_new", "update");
     
+    // Assign new values to each div.data cell
     let cells = rows.selectAll("div.data")
         .data((d) => {return d3.entries(filter(d));})
         .html((d) => {return d.value;})
         .attr("is_new", "update");
 
+    // Set a sorting transition for updated rows
     rows.transition("sorting")
         .delay((d, i) => {return 100 + (i/newToplist.length) * 400/speed;})
         .duration(400/speed)
-        .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";})
-        .on("start", addTriangle);
+        .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";});
 
-    // Add new ones
+    // Add new rows
     let enterRows = rows.enter()
         .append("div")
         .attr("class", "datarow")
-        .attr("id", function(d) { return uniqueID++; })
         .style("top", (d,i) => {return (row_size + ((i) * row_size)) + "px";})
         .style("opacity", 0.0)
         .style("left", "-600px")
         .style("height", data_row_size + "px")
         .attr("is_new", "enter");
-        //.on("click", showDetails);
 
+    // Create an info icon and radar plot if info set to True
     if(info) {
       let enter_info = enterRows
         .append("div")
@@ -1422,22 +1401,26 @@ function updateToplist(speed, newToplist, keys, filter, sortBy, info = false){
             d3.select(".d3-tip").transition().style("opacity", "1");   
             tip.show(d);
             let radarCallback = function(features) {
-              //console.log(features)
               if(features[0]){
                 let svg_radar2 = RadarChart(".radar", parseFeatures(features[0]), radarChartOptions2);
               }
             }
-
+          // Query the database for radar plot data (audio features for songs)
           getAllDocuments(db.collection('songs'), {"id":d.id}, radarCallback, [], {_id: 0, "acousticness": 1, "danceability": 1, "energy": 1, "instrumentalness": 1, "liveness": 1, "speechiness": 1, "valence": 1})                   
         })
         .on('mouseout', function(d) {
-          d3.select(".d3-tip").transition().duration(200/speed).style("opacity", "0").on("end", () => {d3.select("svg.radar").remove(); tip.hide;});
-          
+          d3.select(".d3-tip")
+            .transition()
+            .duration(200/speed)
+            .style("opacity", "0")
+            .on("end", () => {d3.select("svg.radar").remove(); tip.hide;});         
         });
 
+        // Initialize tooltip for radar plot
         enter_info.call(tip);
     }
 
+    // Assign data to new rows
     let enterCells = enterRows.selectAll("div.data")
         .data((d) => {return d3.entries(filter(d));})
         .enter()
@@ -1446,6 +1429,7 @@ function updateToplist(speed, newToplist, keys, filter, sortBy, info = false){
         .attr("cell_type", (d) => {return d.key;})
         .html((d) => {return d.value;});
     
+    // Set entering transition
     enterRows.transition("new_rows")
         .ease(d3.easeQuad)
         .delay(600/speed)
@@ -1453,88 +1437,22 @@ function updateToplist(speed, newToplist, keys, filter, sortBy, info = false){
         .style('opacity', 1.0)
         .style("left", "0px");
 
+    // Set exiting transition for rows to be removed
     rows.exit()
         .attr('is_new', 'exit')
         .transition("exit_rows")
-        .ease(d3.easeQuad) //"quad" d3.v3
+        .ease(d3.easeQuad)
         .delay(0)
         .duration(200/speed)
         .style('opacity', 0.0)
         .style("left", "600px")
         .remove();
 }                   
-function addTriangle() {
 
-    d3.select(this).selectAll("[cell_type = p]")
-        .append('svg')
-        .attr("class", "triangle")
-        .attr("height", triangle_height + "px")
-        .attr("width", triangle_width + "px")
-        .style("right", 0 + 'px')
-            .append('polygon')
-            .attr('points', function(d) {
-                console.log(+previousData.get(this));
-                console.log(+d.value);                    
-                var diff = +previousData.get(this) - d.value;  // Retrieve previously stored data.               
-                return diff < 0 ? "0,0 " + triangle_width + ",0 " + triangle_width/2 +"," + triangle_height + " 0,0" : 
-                        diff > 0 ? "0," + triangle_height +" " + triangle_height+","+triangle_width+" "+triangle_width/2+",0 0,"+triangle_height :
-                        "0," + triangle_height/2 + " " + triangle_width+","+triangle_width/2+" 0," + triangle_width/2;
-                })
-            .style("fill" ,function(d) {
-                var diff = +previousData.get(this) - d.value; 
-                return diff < 0 ? "red" : diff > 0 ? "green" : "black";
-                })
-            .style("stroke" ,function(d) {
-                var diff = +previousData.get(this) - d.value; 
-                return diff === 0 ? "black" : "";
-                })
-            .style("opacity", 0)
-            .transition()
-            .duration(1000)
-            .ease(d3.easeLinear)
-            .style("opacity", 1);
-}
-function savePreviousData() {
-    d3.selectAll("[cell_type = p]").each(function(d) { console.log(this); previousData.set(this, d.value) });
-}
-function shuffle(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-}
-
-
-function showDetails()
-{
-    let movingRows = d3.selectAll("div.datarow")
-        .filter((d) => d.p > d3.select(this).datum().p);
-
-    let movingRowsNodes = movingRows.nodes();
-
-    movingRows.transition()
-        .duration(1000)
-        .style("top", (d, i) => { return +d3.select(movingRowsNodes[i]).style("top").slice(0,-2) + 30 + "px"});
-}
-
-
-/*
-d3.select("#controls").insert("button", ".table").on("click", sortSheet).html("sort")
-d3.select("#controls").insert("button", ".table").on("click", transitionSheet).html("transition")
-d3.select("#controls").insert("button", ".table").on("click", transformData).html("transform")
-*/
-
-//////////////////////////////////////////////////////////////
-//////////////////////// Set-Up //////////////////////////////
-//////////////////////////////////////////////////////////////
-
+// Radar plot configuration and options
 var margin_radar = { top: 30, right: 40, bottom: 30, left: 40 },
 width_radar = +style.getPropertyValue('--tooltip-song-size') + 60 - margin_radar.left - margin_radar.right,
 height_radar = +style.getPropertyValue('--tooltip-song-size') - margin_radar.top - margin_radar.bottom;
-resize();
-
-
 
 var radarChartOptions2 = {
   w: width_radar,
@@ -1548,10 +1466,8 @@ var radarChartOptions2 = {
   opacityArea: 0.35,
   opacityCircles: 0.01,
   wrapWidth: 100,
-  //legend: { title: 'Organization XYZ', translateX: 100, translateY: 40 },
-  //unit: '$'
 };
 
-// Draw the chart, get a reference the created svg element :
-//let svg_radar2 = RadarChart(div_toplist, data_radar, radarChartOptions2);
+resize();
+
 </script>
