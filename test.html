@@ -22,7 +22,7 @@
       </div>
 
       <div id="Songs" class="tabcontent" style = "height:90vh;">
-        <h1 style="font-size: 20px" class="info_text">♪ Search a song using the research bar or select a song from the list! ♪</h1>
+        <h1 style="font-size: 20px" class="info_text">♪ Search a song using the search bar or select a song from the list! ♪</h1>
         <div style="height: 60px">
           <div id="autocomplete"></div>
         </div>
@@ -786,6 +786,7 @@ function Open(evt, Selection) {
     if(mode != 'song') {
       removeTopList();
       topListText.text("")
+	  topListInfoText.text("")
       show_image(null);
       if(streamGraph) {
         streamGraph.remove();
