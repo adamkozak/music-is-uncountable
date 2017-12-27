@@ -482,11 +482,22 @@ function onSelect(d) {
   showSongInfo()
 }
 
+
+let streamsDict = {};
+
 /*
   Called back when all entries related to the selected song are retrieved.
   Process the data and display the infos
 */
 let songEntriesCallback = function(timeLine) {
+
+  worldMap.spotify_countries.forEach(function(d, i) {
+         let filtered = timeLine.filter(x => d == x.r);
+         let aggregation = filtered.map(x => parseInt(x.s)).reduce(function(a, v) {
+             return a + v;
+         }, 0)
+         streamsDict[d] = aggregation;
+       })
 
   //Remove the global entries, keep only entries for each country
   timeLine = timeLine.filter(x => x.r != 'global')
